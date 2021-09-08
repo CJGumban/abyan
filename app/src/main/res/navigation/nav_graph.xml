@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.abyan.ui.LoginFragment"
+        android:label="LoginFragment" >
+        <action
+            android:id="@+id/action_loginFragment_to_createAccount1Fragment"
+            app:destination="@id/createAccount1Fragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/createAccount1Fragment"
+        android:name="com.example.abyan.ui.CreateAccount1Fragment"
+        android:label="CreateAccount1Fragment" >
+        <action
+            android:id="@+id/action_createAccount1Fragment_to_createAccount2Fragment"
+            app:destination="@id/createAccount2Fragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/createAccount2Fragment"
+        android:name="com.example.abyan.ui.CreateAccount2Fragment"
+        android:label="fragment_create_account2"
+        tools:layout="@layout/fragment_create_account2" >
+        <action
+            android:id="@+id/action_createAccount2Fragment_to_confirmUserDataFragment"
+            app:destination="@id/confirmUserDataFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/confirmUserDataFragment"
+        android:name="com.example.abyan.ui.ConfirmUserDataFragment"
+        android:label="fragment_confirm_user_data"
+        tools:layout="@layout/fragment_confirm_user_data" />
+</navigation>

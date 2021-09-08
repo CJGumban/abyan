@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "668434676189",
+    "firebase_url": "https://abyan-fc2ed-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "abyan-fc2ed",
+    "storage_bucket": "abyan-fc2ed.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:668434676189:android:2a049e990de94e2bb71e34",
+        "android_client_info": {
+          "package_name": "com.example.abyan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "668434676189-muvnvik448sbgcqvsmknl9o5nqmnpr6c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKBBd-rZWwEgZMIStwsnHfdW4HEAzYoxk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "668434676189-muvnvik448sbgcqvsmknl9o5nqmnpr6c.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
