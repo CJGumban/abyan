@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.abyan.model.Coordinate
 import com.example.abyan.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -51,16 +52,20 @@ class LoginSignUpViewModel : ViewModel() {
         }
     }
 
-    fun login(email: String,password: String){
+    fun login(email: String,password: String):Boolean{
+        var success: Boolean = false
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener{
                 task ->
                 if(task.isSuccessful) {
                     Log.d(TAG_AUTH, "Sign In: Success")
+                     success = true
                 } else {
                     Log.d(TAG_AUTH, "Sign In: Failed" , task.exception)
+
                 }
             }
+        return success
     }
 
     fun createAccount(){
@@ -94,6 +99,16 @@ class LoginSignUpViewModel : ViewModel() {
                 Log.w(TAG_AUTH, Exception())
             }
 
+    }
+
+    val coordinate = Coordinate(11.5303,122.6842)
+
+    fun lat(): Double? {
+
+    return coordinate.lat
+   }
+    fun lng(): Double? {
+        return coordinate.lng
     }
 
     fun loggedIn():Boolean{

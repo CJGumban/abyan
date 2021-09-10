@@ -1,4 +1,5 @@
 package com.example.abyan.ui
+import android.location.LocationManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,8 +8,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
+import com.example.abyan.MainActivity
 import com.example.abyan.databinding.FragmentLoginBinding
 import com.example.abyan.viewmodel.LoginSignUpViewModel
+import com.google.android.gms.maps.GoogleMap
 
 class LoginFragment : Fragment() {
 
@@ -39,15 +42,23 @@ class LoginFragment : Fragment() {
         }
 
         binding.loginButton.setOnClickListener {
-            email = binding.textfieldUsername.editText?.text.toString()
-            password = binding.textfieldPassword.editText?.text.toString()
-            sharedViewModel.login(email!!, password!!)
+//          email = binding.textfieldUsername.editText?.text.toString()
+//            password = binding.textfieldPassword.editText?.text.toString()
+//            if (sharedViewModel.login(email!!, password!!)){
+//
+//            }
+            val action =
+                LoginFragmentDirections.actionLoginFragmentToSendLocationFragment()
+            view?.findNavController()?.navigate(action)
+
         }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+
     }
+
 
 }

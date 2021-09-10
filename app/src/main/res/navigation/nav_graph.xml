@@ -12,6 +12,9 @@
         <action
             android:id="@+id/action_loginFragment_to_createAccount1Fragment"
             app:destination="@id/createAccount1Fragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_sendLocationFragment"
+            app:destination="@id/sendLocationFragment" />
     </fragment>
     <fragment
         android:id="@+id/createAccount1Fragment"
@@ -35,4 +38,9 @@
         android:name="com.example.abyan.ui.ConfirmUserDataFragment"
         android:label="fragment_confirm_user_data"
         tools:layout="@layout/fragment_confirm_user_data" />
+    <fragment
+        android:id="@+id/sendLocationFragment"
+        android:name="com.example.abyan.ui.SendLocationFragment"
+        android:label="fragment_send_location"
+        tools:layout="@layout/fragment_send_location" />
 </navigation>
