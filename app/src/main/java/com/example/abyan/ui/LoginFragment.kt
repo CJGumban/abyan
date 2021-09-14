@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import com.example.abyan.MainActivity
@@ -41,6 +42,7 @@ class LoginFragment : Fragment() {
         view?.findNavController()?.navigate(action)
         }
 
+        sharedViewModel.getMapsDirection()
         binding.loginButton.setOnClickListener {
 //          email = binding.textfieldUsername.editText?.text.toString()
 //            password = binding.textfieldPassword.editText?.text.toString()

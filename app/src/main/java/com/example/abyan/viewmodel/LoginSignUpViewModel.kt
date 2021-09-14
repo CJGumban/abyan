@@ -4,15 +4,19 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.abyan.model.Coordinate
 import com.example.abyan.model.User
+import com.example.abyan.network.DirectionApi
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.launch
 import java.lang.Exception
+import kotlin.math.E
 
 class LoginSignUpViewModel : ViewModel() {
     private var auth : FirebaseAuth = Firebase.auth
@@ -113,6 +117,23 @@ class LoginSignUpViewModel : ViewModel() {
 
     fun loggedIn():Boolean{
         return currentUser != null
+    }
+
+
+
+    fun getMapsDirection() {
+        var status: String? = null
+        viewModelScope.launch {
+            try{
+
+            val listResult = DirectionApi.retrofitService.getDirection()
+            status = listResult.toString()
+            Log.d("maps","result: $status")
+        } catch (e: Exception){
+                Log.d("maps","status failed: $status")
+            Log.d("maps", "$e.message")
+        }
+        }
     }
 
 
