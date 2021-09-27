@@ -6,7 +6,7 @@
     <data>
         <variable
             name="viewModel"
-            type="com.example.abyan.viewmodel.LoginSignUpViewModel" />
+            type="com.example.abyan.viewmodel.ApplicationViewModel" />
         <variable
             name="confirmUserDataFragment"
             type="com.example.abyan.ui.ConfirmUserDataFragment" />

@@ -7,16 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import com.example.abyan.databinding.FragmentConfirmUserDataBinding
-import com.example.abyan.viewmodel.LoginSignUpViewModel
+import com.example.abyan.viewmodel.ApplicationViewModel
 
 
 class ConfirmUserDataFragment : Fragment() {
     private var binding: FragmentConfirmUserDataBinding? = null
-    private val loginSignUpViewModel: LoginSignUpViewModel by activityViewModels()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
+    private val applicationViewModel: ApplicationViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -32,7 +28,7 @@ class ConfirmUserDataFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding?.apply {
             lifecycleOwner = viewLifecycleOwner
-            viewModel = loginSignUpViewModel
+            viewModel = applicationViewModel
             confirmUserDataFragment = this@ConfirmUserDataFragment
         }
 

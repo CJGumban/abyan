@@ -7,14 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
-import com.example.abyan.R
 import com.example.abyan.databinding.FragmentCreateAccount1Binding
-import com.example.abyan.viewmodel.LoginSignUpViewModel
+import com.example.abyan.viewmodel.ApplicationViewModel
 
 
 class CreateAccount1Fragment : Fragment() {
     private lateinit var binding: FragmentCreateAccount1Binding
-    private val loginSignUpViewModel: LoginSignUpViewModel by activityViewModels()
+    private val applicationViewModel: ApplicationViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,10 +28,10 @@ class CreateAccount1Fragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.ConfirmButton.setOnClickListener {
-            loginSignUpViewModel.firstName = binding.textfieldFirstname.editText?.text.toString()
-            loginSignUpViewModel.lastName = binding.textfieldLastname.editText?.text.toString()
-            loginSignUpViewModel.emailNumber = binding.textfieldEmail.editText?.text.toString()
-            loginSignUpViewModel.password = binding.textfieldPassword.editText?.text.toString()
+            applicationViewModel.firstName = binding.textfieldFirstname.editText?.text.toString()
+            applicationViewModel.lastName = binding.textfieldLastname.editText?.text.toString()
+            applicationViewModel.emailNumber = binding.textfieldEmail.editText?.text.toString()
+            applicationViewModel.password = binding.textfieldPassword.editText?.text.toString()
             val action = CreateAccount1FragmentDirections.actionCreateAccount1FragmentToCreateAccount2Fragment()
             view.findNavController().navigate(action)
         }

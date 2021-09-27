@@ -15,6 +15,9 @@
         <action
             android:id="@+id/action_loginFragment_to_sendLocationFragment"
             app:destination="@id/sendLocationFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
     </fragment>
     <fragment
         android:id="@+id/createAccount1Fragment"
@@ -37,10 +40,51 @@
         android:id="@+id/confirmUserDataFragment"
         android:name="com.example.abyan.ui.ConfirmUserDataFragment"
         android:label="fragment_confirm_user_data"
-        tools:layout="@layout/fragment_confirm_user_data" />
+        tools:layout="@layout/fragment_confirm_user_data" >
+        <action
+            android:id="@+id/action_confirmUserDataFragment_to_sendLocationFragment"
+            app:destination="@id/sendLocationFragment" />
+    </fragment>
     <fragment
         android:id="@+id/sendLocationFragment"
-        android:name="com.example.abyan.ui.SendLocationFragment"
+        android:name="com.example.abyan.ui.home.SendLocationFragment"
         android:label="fragment_send_location"
-        tools:layout="@layout/fragment_send_location" />
+        tools:layout="@layout/fragment_send_location" >
+        <action
+            android:id="@+id/action_sendLocationFragment_to_newsUpdateFragment"
+            app:destination="@id/newsUpdateFragment" />
+        <action
+            android:id="@+id/action_sendLocationFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+        <action
+            android:id="@+id/action_sendLocationFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.abyan.ui.home.HomeFragment"
+        android:label="fragment_home"
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_homeFragment_to_newsUpdateFragment"
+            app:destination="@id/newsUpdateFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_sendLocationFragment"
+            app:destination="@id/sendLocationFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/newsUpdateFragment"
+        android:name="com.example.abyan.ui.home.NewsUpdateFragment"
+        android:label="fragment_news_update"
+        tools:layout="@layout/fragment_news_update" >
+        <action
+            android:id="@+id/action_newsUpdateFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+        <action
+            android:id="@+id/action_newsUpdateFragment_to_sendLocationFragment"
+            app:destination="@id/sendLocationFragment" />
+    </fragment>
 </navigation>
