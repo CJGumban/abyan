@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.abyan.model.Coordinate
+import com.example.abyan.model.MarkerOnRoute
 import com.example.abyan.model.User
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
@@ -14,15 +15,12 @@ import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
-import java.security.Timestamp
-import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.TimeUnit
 import java.util.Locale
-import kotlin.time.milliseconds
 
 
 class ApplicationViewModel : ViewModel() {
+
     var auth : FirebaseAuth = Firebase.auth
     var database: DatabaseReference = Firebase.database.reference
     private var userMutableLiveData = MutableLiveData<FirebaseUser>()
@@ -39,8 +37,10 @@ class ApplicationViewModel : ViewModel() {
     var address: String? = null
     var longitude: Double? = null
     var latitude: Double? = null
+    var type: String? = null
     var latlngList: MutableList<LatLng> = ArrayList()
     var coordinatelist: MutableList<Coordinate> = ArrayList()
+    var markerOnRoute = MarkerOnRoute(null, false)
     companion object{
         const val TAG = "AppTesting"
     }
@@ -123,43 +123,169 @@ class ApplicationViewModel : ViewModel() {
     }
 
     fun sendLocation() {
-        var tsLong = System.currentTimeMillis() / 1000
-        Log.d(TAG, " timestamp  $tsLong")
-        val cal = Calendar.getInstance(Locale.ENGLISH)
-        cal.timeInMillis = tsLong * 1000L
-        val date: String = DateFormat.format("MM-dd hh:mm", cal).toString()
-        Log.d(TAG,"time stamp to date: $date")
+        var userExist:Boolean = false
+        var currentCoordinateKey: String? = null
+       coordinatelist.forEach { coordinate ->
+           if (auth.currentUser?.email == coordinate.email ){
+               userExist = true
+               currentCoordinateKey = coordinate.key
+               Log.d(TAG, "sendLocationMethod: Current user exist")
+           }
 
-        val userId = auth.currentUser?.uid.toString()
-        val email = auth.currentUser?.email
-        // Create new post at /user-posts/$userid/$postid and at
-        // /posts/$postid simultaneously
-        val key = database.push().key
-        if (key == null) {
-            Log.w(TAG, "Couldn't get push key for posts")
-            return
-        }
-        Log.w(TAG, "$key")
+       }
+        if (userExist){
+            var tsLong = System.currentTimeMillis() / 1000
+            Log.d(TAG, " timestamp  $tsLong")
+            val cal = Calendar.getInstance(Locale.ENGLISH)
+            cal.timeInMillis = tsLong * 1000L
+            val date: String = DateFormat.format("MM-dd hh:mm", cal).toString()
+            Log.d(TAG,"time stamp to date: $date")
 
-
-        val coordinate = Coordinate(key, email, latitude, longitude,"need help", null, date)
-        val coordinateValues = coordinate.toMap()
-
-        val childUpdates = hashMapOf<String, Any>(
-            "coordinates/$key" to coordinateValues,
-            "active-coordinates/$key" to coordinateValues,
-
-            //"/user-coordinates/$email/$key" to coordinateValues
-        )
-
-        database.updateChildren(childUpdates)
-            .addOnSuccessListener { Log.w(TAG,"it worked")}
-            .addOnFailureListener {
-                Log.w(TAG, "failed")
+            val userId = auth.currentUser?.uid.toString()
+            val email = auth.currentUser?.email
+            // Create new post at /user-posts/$userid/$postid and at
+            // /posts/$postid simultaneously
+            val key = database.push().key
+            if (key == null) {
+                Log.w(TAG, "Couldn't get push key for posts")
+                return
             }
+            Log.w(TAG, "$key")
+
+
+            val coordinate = Coordinate(currentCoordinateKey, email, latitude, longitude,"need help", type, date)
+            val coordinateValues = coordinate.toMap()
+
+            val childUpdates = hashMapOf<String, Any>(
+                "coordinates/$currentCoordinateKey" to coordinateValues,
+                "active-coordinates/$currentCoordinateKey" to coordinateValues,
+
+
+                //coordinates gets record of all of the coordinates send
+                //active-coordinates records coordinates for each email if email gets new coordinate the older coordinates get overwritten
+                //"active-coordinates/@email" to coordinateValues,
+
+
+            )
+
+            database.updateChildren(childUpdates)
+                .addOnSuccessListener { Log.w(TAG,"it worked")}
+                .addOnFailureListener {
+                    Log.w(TAG, "failed")
+                }
+
+        } else if(!userExist){
+            var tsLong = System.currentTimeMillis() / 1000
+            Log.d(TAG, " timestamp  $tsLong")
+            val cal = Calendar.getInstance(Locale.ENGLISH)
+            cal.timeInMillis = tsLong * 1000L
+            val date: String = DateFormat.format("MM-dd hh:mm", cal).toString()
+            Log.d(TAG,"time stamp to date: $date")
+
+            val userId = auth.currentUser?.uid.toString()
+            val email = auth.currentUser?.email
+            // Create new post at /user-posts/$userid/$postid and at
+            // /posts/$postid simultaneously
+            val key = database.push().key
+            if (key == null) {
+                Log.w(TAG, "Couldn't get push key for posts")
+                return
+            }
+            Log.w(TAG, "$key")
+
+
+            val coordinate = Coordinate(key, email, latitude, longitude,"need help", type, date)
+            val coordinateValues = coordinate.toMap()
+
+            val childUpdates = hashMapOf<String, Any>(
+                "coordinates/$key" to coordinateValues,
+                "active-coordinates/$key" to coordinateValues,
+
+
+                //coordinates gets record of all of the coordinates send
+                //active-coordinates records coordinates for each email if email gets new coordinate the older coordinates get overwritten
+                //"active-coordinates/@email" to coordinateValues,
+
+
+            )
+            database.updateChildren(childUpdates)
+                .addOnSuccessListener { Log.w(TAG,"it worked")}
+                .addOnFailureListener {
+                    Log.w(TAG, "failed")
+                }
+        }
+
 
     }
 
+    fun activateRoute(coordinate: Coordinate){
+        markerOnRoute?.coordinate = coordinate
+        markerOnRoute?.isActive = true
+        Log.d(TAG,"acivate Route: ${markerOnRoute.coordinate.toString()}")
+    }
+    fun deactivateRoute() {
+        markerOnRoute?.coordinate = null
+        markerOnRoute?.isActive = false
+    }
+
+
+
+
+
+
+    fun changeStatus(coordinate: Coordinate, function:String){
+        var key:String = coordinate.key.toString()
+        when(function){
+            "need help"->{
+                coordinate.status = "need help"
+                val coordinateValues = coordinate.toMap()
+                val childUpdates = hashMapOf<String, Any>(
+                    "coordinates/$key" to coordinateValues,
+                    "active-coordinates/$key" to coordinateValues,
+                )
+                database.updateChildren(childUpdates)
+                    .addOnSuccessListener { Log.w(TAG,"change status to need help: Success")}
+                    .addOnFailureListener {
+                        Log.w(TAG, "change status to need help : Failed")
+                    }
+            }
+            "ongoing"->{
+                coordinate.status = "ongoing"
+                val coordinateValues = coordinate.toMap()
+                val childUpdates = hashMapOf<String, Any>(
+                    "coordinates/$key" to coordinateValues,
+                    "active-coordinates/$key" to coordinateValues,
+                )
+                database.updateChildren(childUpdates)
+                    .addOnSuccessListener { Log.w(TAG,"change status to ongoing: Success")}
+                    .addOnFailureListener {
+                        Log.w(TAG, "change status to ongoing: Failed")
+                    }
+            }
+            "done"->{
+                 coordinate.status = "done"
+                val coordinateValues = coordinate.toMap()
+                val childUpdates = hashMapOf<String, Any>(
+                    "coordinates/$key" to coordinateValues,
+                    "active-coordinates/$key" to coordinateValues,
+                )
+                database.updateChildren(childUpdates)
+                    .addOnSuccessListener { Log.w(TAG,"change status to done: Success")}
+                    .addOnFailureListener {
+                        Log.w(TAG, "change status to done: Failed")
+                    }}
+            "delete"->{
+
+                database.child("active-coordinates").child("$key").removeValue()
+                    .addOnSuccessListener {
+                        Log.d(TAG,"Change status: Delete success")
+                    }
+                    .addOnFailureListener {
+                        Log.d(TAG,"Change status: Delete failure")
+                    }
+            }
+        }
+    }
     fun register(email: String, password: String) {
             auth.createUserWithEmailAndPassword(email,password)
                 .addOnCompleteListener()

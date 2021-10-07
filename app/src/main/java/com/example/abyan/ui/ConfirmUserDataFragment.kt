@@ -10,7 +10,7 @@ import com.example.abyan.databinding.FragmentConfirmUserDataBinding
 import com.example.abyan.viewmodel.ApplicationViewModel
 
 
-class ConfirmUserDataFragment : Fragment() {
+class  ConfirmUserDataFragment : Fragment() {
     private var binding: FragmentConfirmUserDataBinding? = null
     private val applicationViewModel: ApplicationViewModel by activityViewModels()
 

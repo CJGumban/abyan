@@ -11,7 +11,7 @@ class Coordinate(
     val email: String? = null,
     val lat: Double? = null,
     val lng: Double? = null,
-    val status: String? = null,
+    var status: String? = null,
     val type: String? = null,
     val dateTime: String? = null
                   ) {

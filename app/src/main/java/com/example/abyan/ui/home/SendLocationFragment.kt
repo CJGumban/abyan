@@ -3,6 +3,7 @@ package com.example.abyan.ui.home
 import android.Manifest
 import android.content.IntentSender
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.location.Location
 import androidx.fragment.app.Fragment
 import android.os.Bundle
@@ -18,54 +19,65 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import com.example.abyan.R
+import com.example.abyan.R.drawable.*
 import com.example.abyan.databinding.FragmentSendLocationBinding
+import com.example.abyan.model.Coordinate
 import com.example.abyan.viewmodel.ApplicationViewModel
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.Polyline
-import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.Task
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.GsonBuilder
 import com.google.maps.DirectionsApi
 import com.google.maps.GeoApiContext
 import com.google.maps.internal.PolylineEncoding
-import java.time.Clock
+import java.time.LocalDate
+import java.time.Period
 import java.util.*
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+
+import android.graphics.Canvas
+
+import android.graphics.drawable.VectorDrawable
+
+import android.os.Build
+import androidx.appcompat.content.res.AppCompatResources.getDrawable
+
+import com.google.android.gms.maps.model.BitmapDescriptor
 
 
 class SendLocationFragment : Fragment() {
     private lateinit var binding: FragmentSendLocationBinding
     private lateinit var mMap: GoogleMap
-    val sharedViewModel : ApplicationViewModel by activityViewModels()
+    val sharedViewModel: ApplicationViewModel by activityViewModels()
     private val REQUEST_LOCATION_PERMISSION = 1
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
     private var mCurrentLocation: Location? = null
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private var locationPermissionGranted = true
-
-
+    private var polyline: Polyline? = null
 
 
 //    private var context: GeoApiContext? = null
 
 
-    companion object{
+    companion object {
 
         const val TAG = "AppTesting"
 
     }
-    private fun isPermissionGranted() : Boolean {
+
+    private fun isPermissionGranted(): Boolean {
         return ContextCompat.checkSelfPermission(
             requireContext(),
-            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
-    fun getmMap(mMap:GoogleMap):GoogleMap{
+    fun getmMap(mMap: GoogleMap): GoogleMap {
         return mMap
     }
 
@@ -89,8 +101,7 @@ class SendLocationFragment : Fragment() {
                 return
             }
             mMap.isMyLocationEnabled = true
-        }
-        else {
+        } else {
             ActivityCompat.requestPermissions(
                 requireActivity(),
                 arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -100,11 +111,11 @@ class SendLocationFragment : Fragment() {
     }
 
 
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
-        grantResults: IntArray) {
+        grantResults: IntArray
+    ) {
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
             if (grantResults.contains(PackageManager.PERMISSION_GRANTED)) {
                 enableMyLocation()
@@ -113,10 +124,11 @@ class SendLocationFragment : Fragment() {
     }
 
 
+
     private var callback = OnMapReadyCallback { googleMap ->
         getmMap(googleMap)
         mMap = googleMap
-        val roxas = LatLng(11.5529,122.7407)
+        val roxas = LatLng(11.5529, 122.7407)
         mMap.setMinZoomPreference(10f)
         mMap.setMaxZoomPreference(30f)
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
@@ -126,148 +138,592 @@ class SendLocationFragment : Fragment() {
         sharedViewModel.getLocationsListener()
         enableMyLocation()
         refreshMapPin()
-        mMap.setOnInfoWindowClickListener {
-            marker->
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Get Direction?")
-                .setMessage("Get Directions to ${marker.title}")
-                .setNeutralButton("Cancel") { dialog, which ->
-                    // Respond to neutral button press
-                }
-                .setPositiveButton("Accept") { dialog, which ->
-                    var position = marker.position
 
 
 
-                    object : CountDownTimer(300000, 5000) {
 
-                        override fun onTick(millisUntilFinished: Long) {
-                            Log.d(TAG,"Timer ${millisUntilFinished / 5000}")
-                            mMap.clear()
-                            refreshMapPin()
-                            showDirection(mCurrentLocation!!, position)
+
+        //on Marker click
+        //put logic or menus depending on the status of the marker
+        mMap.setOnInfoWindowClickListener { marker ->
+            var markerCoordinate: Coordinate = marker.tag as Coordinate
+            Log.d(TAG, "Coordinate key: ${markerCoordinate.toMap().toString()}")
+            //sharedViewModel.changeStatus(coordinate.key.toString(),"delete")
+
+            try {
+                when {
+
+                    markerCoordinate.status?.equals("need help")!! -> {
+                        Log.d(
+                            TAG,
+                            "marker on route ${sharedViewModel.markerOnRoute.toMap().toString()}"
+                        )
+
+                        MaterialAlertDialogBuilder(requireContext())
+                            .setTitle("Get Direction?")
+                            .setMessage("Get Directions to ${marker.title}")
+                            .setNeutralButton("Close") { dialog, which ->
+                                // Respond to neutral button press
+                            }
+                            .setPositiveButton("Accept") { dialog, which ->
+                                //markerOnRoute not null
+
+                                    if (!sharedViewModel.markerOnRoute?.isActive!!||sharedViewModel.markerOnRoute.coordinate==null) {
+                                        sharedViewModel.activateRoute(markerCoordinate)
+                                        sharedViewModel.changeStatus(markerCoordinate, "ongoing")
+                                        (marker.tag as Coordinate).status = "ongoing"
+                                        editMarker(marker)
+                                        object : CountDownTimer(500000, 5000) {
+                                            override fun onTick(millisUntilFinished: Long) {
+                                                if (sharedViewModel.markerOnRoute?.isActive!!) {
+                                                    showDirection(
+                                                        mCurrentLocation!!,
+                                                        LatLng(
+                                                            sharedViewModel.markerOnRoute?.coordinate?.lat!!,
+                                                            sharedViewModel.markerOnRoute?.coordinate?.lng!!
+                                                        )
+                                                    )
+                                                } else if (!sharedViewModel.markerOnRoute?.isActive!!) {
+                                                    cancel()
+                                                }
+                                            }
+
+                                            override fun onFinish() {
+                                            }
+
+                                        }.start()
+                                    } else if (sharedViewModel.markerOnRoute?.isActive!!) {
+                                       if (sharedViewModel.markerOnRoute.coordinate!=null){
+                                            //coordinate exist
+                                            if (sharedViewModel.markerOnRoute?.coordinate?.key != markerCoordinate.key) {
+                                                //coordinate.key not equal on active markerkey
+                                                MaterialAlertDialogBuilder(
+                                                    requireContext()
+                                                )
+                                                    .setTitle("Ongoing route")
+                                                    .setMessage("You already have an active route to another user. Proceeding will cancel your ongoing active Route.")
+                                                    .setNeutralButton("Cancel") { dialog, which ->
+                                                        // Respond to neutral button press
+                                                    }
+                                                    .setPositiveButton("Proceed") { dialog, which ->
+                                                        sharedViewModel.changeStatus(sharedViewModel.markerOnRoute?.coordinate!!, "need help")
+                                                        (sharedViewModel.markerOnRoute?.coordinate as Coordinate).status = "need help"
+                                                        addMarker(sharedViewModel.markerOnRoute?.coordinate!!)
+                                                        sharedViewModel.activateRoute(markerCoordinate)
+                                                        showDirection(
+                                                            mCurrentLocation!!,
+                                                            LatLng(
+                                                                sharedViewModel.markerOnRoute?.coordinate?.lat!!,
+                                                                sharedViewModel.markerOnRoute?.coordinate?.lng!!
+                                                            )
+                                                        )
+//                                                   TODO("cancel previous marker route" +
+//                                                           "change marker route" +
+//                                                           "mMap.clear and refreshPin" +
+//                                                           "confirm if user wanted to change marker route")
+
+                                                    }.show()
+                                            }
+                                            else if (sharedViewModel.markerOnRoute?.coordinate?.key == markerCoordinate.key) {
+                                                MaterialAlertDialogBuilder(
+                                                    requireContext()
+                                                )
+                                                    .setTitle("Ongoing route")
+                                                    .setMessage("Already on Route with this marker. Do you want to cancel route?")
+                                                    .setPositiveButton("Yes") { dialog, which ->
+                                                        sharedViewModel.changeStatus(
+                                                            markerCoordinate,
+                                                            "need help"
+                                                        )
+
+                                                        sharedViewModel.deactivateRoute()
+                                                    }
+                                                    .setNegativeButton("No"){ dialog, which ->
+                                                    }.show()
+                                            }
+                                       }
+                                    }
+                                
+                            }.show()
+                    }
+                    markerCoordinate.status?.equals("ongoing")!! -> {
+                        val items = arrayOf("cancel route", "continue", "done")
+                        //markerRoute is null
+                        if (sharedViewModel.markerOnRoute.coordinate == null|| !sharedViewModel.markerOnRoute.isActive!!) {
+                            MaterialAlertDialogBuilder(requireContext())
+                                .setTitle("Get Direction?")
+                                .setMessage("Get Directions to ${marker.title}")
+                                .setNeutralButton("Close") { dialog, which ->
+                                    // Respond to neutral button press
+                                }
+                                .setPositiveButton("Accept") { dialog, which ->
+                                    sharedViewModel.activateRoute(markerCoordinate)
+                                    object : CountDownTimer(500000, 5000) {
+                                        override fun onTick(millisUntilFinished: Long) {
+                                            if (sharedViewModel.markerOnRoute?.isActive == true) {
+                                                showDirection(
+                                                    mCurrentLocation!!,
+                                                    LatLng(
+                                                        sharedViewModel.markerOnRoute?.coordinate?.lat!!,
+                                                        sharedViewModel.markerOnRoute?.coordinate?.lng!!
+                                                    )
+                                                )
+                                            } else if (sharedViewModel.markerOnRoute?.isActive == false) {
+                                                cancel()
+                                            }
+                                        }
+                                        override fun onFinish() {
+                                        }
+                                    }.start()
+                                }.show()
+
                         }
+                        else if(sharedViewModel.markerOnRoute.coordinate != null){
+                            if (sharedViewModel.markerOnRoute.coordinate!!.key == markerCoordinate.key){
+                                var typepicker = MaterialAlertDialogBuilder(requireContext())
+                                    .setTitle("ongoing")
+                                    .setItems(items) { dialog, which ->
+                                        when (which) {
+                                            0 -> {
+                                                sharedViewModel.changeStatus(markerCoordinate, "need help")
+                                                sharedViewModel.deactivateRoute()
+                                                mMap.clear()
+                                                refreshMapPin()
+                                            }
+                                            1 -> {
 
-                        override fun onFinish() {
-                            Log.d(TAG,"Timer Done")
-
+                                            }
+                                            2 -> {
+                                                sharedViewModel.changeStatus(markerCoordinate, "done")
+                                                sharedViewModel.deactivateRoute()
+                                            }
+                                        }
+                                    }.show()
+                            }
+                            else if (sharedViewModel.markerOnRoute.coordinate!!.key != markerCoordinate.key){
+                                MaterialAlertDialogBuilder(
+                                    requireContext()
+                                )
+                                    .setTitle("Ongoing route")
+                                    .setMessage("You already have an active route to another user. Proceeding will cancel your ongoing active Route.")
+                                    .setNeutralButton("Cancel") { dialog, which ->
+                                        // Respond to neutral button press
+                                    }
+                                    .setPositiveButton("Proceed") { dialog, which ->
+                                        sharedViewModel.changeStatus(
+                                            sharedViewModel.markerOnRoute?.coordinate!!,
+                                            "need help"
+                                        )
+                                        sharedViewModel.activateRoute(markerCoordinate)
+                                        showDirection(
+                                            mCurrentLocation!!,
+                                            LatLng(
+                                                sharedViewModel.markerOnRoute?.coordinate?.lat!!,
+                                                sharedViewModel.markerOnRoute?.coordinate?.lng!!
+                                            )
+                                        )
+                                    }.show()
+                            }
                         }
-                    }.start()
+                    }
+                    markerCoordinate.status?.equals("done")!! -> {
+//TODO("done logic")
+
+//                        MaterialAlertDialogBuilder(requireContext())
+//                            .setTitle("Get Direction?")
+//                            .setMessage("Get Directions to ${marker.title}")
+//                            .setNeutralButton("Close") { dialog, which ->
+//                                // Respond to neutral button press
+//                            }
+//                            .setPositiveButton("Accept") { dialog, which ->
+//
+//                            }.show()
+//
+                    }
 
                 }
-                .show()
+            } catch (e: java.lang.Exception) {
+                Log.e(TAG, "send location error: ${e.message}")
+            }
+
         }
-        mMap.setOnMarkerClickListener {
-                marker->
-
+        mMap.setOnMarkerClickListener { marker ->
             marker.showInfoWindow()
-//            MaterialAlertDialogBuilder(requireContext())
-//                .setTitle("Get Direction?")
-//                .setMessage("Get Directions to ${marker.title}")
-//                .setNeutralButton("Cancel") { dialog, which ->
-//                    // Respond to neutral button press
-//                }
-//                .setPositiveButton("Accept") { dialog, which ->
-//                    var position = marker.position
-//                   // showDirection(mCurrentLocation!!, position)
-//
-//                   // var a = googleMap.setOnMyLocationChangeListener {
-//
-//                  //          location ->
-//
-//
-//                        mMap.clear()
-//                        refreshMapPin()
-//                        showDirection(mCurrentLocation!!, position)
-//
-//
-//                  //  }
-//                }
-//                .show()
-
-
-
-
-
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(marker.position))
             true
         }
 
     }
 
+    override fun onStop() {
+        super.onStop()
+        if (sharedViewModel.markerOnRoute.isActive == true){
+            sharedViewModel.markerOnRoute.isActive = false
+        }
+    }
+    fun getAge(year: Int, month: Int, dayOfMonth: Int): Int {
+        return Period.between(
+            LocalDate.of(year, month, dayOfMonth),
+            LocalDate.now()
+        ).years
+    }
 
-    fun refreshMapPin(){
+    fun refreshMapPin() {
 
         try {
-            for (coordinate in sharedViewModel.coordinatelist){
-                if (coordinate.lat!=null&&coordinate.lng!=null){
-                    Log.d(TAG, "foreach method ${coordinate.toMap()}")
+            polyline = mMap.addPolyline(
+                PolylineOptions()
+            )
 
-                    mMap.addMarker(
-                        MarkerOptions()
-                            .position(LatLng(coordinate.lat!!,coordinate.lng!!))
-                            .title(coordinate.email)
-
-                    )
+            for (coordinate in sharedViewModel.coordinatelist) {
+                if (coordinate.lat != null && coordinate.lng != null) {
+                    addMarker(coordinate)
                 }
             }
-        } catch (e: Exception){
+        } catch (e: Exception) {
             android.util.Log.d(TAG, " Map Error: ${e.message}")
         }
     }
 
+
+    private fun addMarker(coordinate: Coordinate) {
+        var pin: Int = pin_null_red
+
+
+        var type = coordinate.type
+        var status = coordinate.status
+        when (type) {
+            "ambulance" -> {
+                when (status) {
+                    "need help" -> {
+                        pin = pin_ambulance_red
+                    }
+                    "ongoing" -> {
+                        pin = pin_ambulance_blue
+                    }
+                    "done" -> {
+                        pin = pin_ambulance_green
+
+                    }
+                }
+            }
+            "car accident" -> {
+                when (status) {
+                    "need help" -> {
+                        pin = pin_car_accident_red
+                    }
+                    "ongoing" -> {
+                        pin = pin_car_accident_blue
+                    }
+                    "done" -> {
+                        pin = pin_car_accident_green
+
+                    }
+                }
+
+            }
+            "fire" -> {
+                when (status) {
+                    "need help" -> {
+                        pin = pin_fire_red
+
+                    }
+                    "ongoing" -> {
+                        pin = pin_fire_blue
+
+                    }
+                    "done" -> {
+                        pin = pin_fire_green
+
+                    }
+                }
+
+            }
+            "crime" -> {
+                when (status) {
+                    "need help" -> {
+                        pin = pin_crime_red
+
+                    }
+                    "ongoing" -> {
+                        pin = pin_crime_blue
+
+                    }
+                    "done" -> {
+                        pin = pin_crime_green
+
+                    }
+                }
+
+            }
+            null -> {
+                when (status) {
+                    "need help" -> {
+
+                    }
+                    "ongoing" -> {
+                        pin = pin_null_blue
+
+                    }
+                    "done" -> {
+                        pin = pin_null_green
+
+                    }
+                }
+            }
+        }
+
+
+        mMap.addMarker(
+            MarkerOptions()
+                .position(LatLng(coordinate.lat!!, coordinate.lng!!))
+                .title(coordinate.email)
+                .icon(getBitmapDescriptor(pin))
+        ).tag = coordinate
+
+
+    }
+
+    private fun editMarker(marker: Marker) {
+        var coordinate: Coordinate = marker.tag as Coordinate
+        var pin: Int = pin_null_red
+
+
+        var type = coordinate?.type
+        var status = coordinate?.status
+        when (type) {
+            "ambulance" -> {
+                when (status) {
+                    "need help" -> {
+                        pin = pin_ambulance_red
+                    }
+                    "ongoing" -> {
+                        pin = pin_ambulance_blue
+                    }
+                    "done" -> {
+                        pin = pin_ambulance_green
+
+                    }
+                }
+            }
+            "car accident" -> {
+                when (status) {
+                    "need help" -> {
+                        pin = pin_car_accident_red
+                    }
+                    "ongoing" -> {
+                        pin = pin_car_accident_blue
+                    }
+                    "done" -> {
+                        pin = pin_car_accident_green
+
+                    }
+                }
+
+            }
+            "fire" -> {
+                when (status) {
+                    "need help" -> {
+                        pin = pin_fire_red
+
+                    }
+                    "ongoing" -> {
+                        pin = pin_fire_blue
+
+                    }
+                    "done" -> {
+                        pin = pin_fire_green
+
+                    }
+                }
+
+            }
+            "crime" -> {
+                when (status) {
+                    "need help" -> {
+                        pin = pin_crime_red
+
+                    }
+                    "ongoing" -> {
+                        pin = pin_crime_blue
+
+                    }
+                    "done" -> {
+                        pin = pin_crime_green
+
+                    }
+                }
+
+            }
+            null -> {
+                when (status) {
+                    "need help" -> {
+
+                    }
+                    "ongoing" -> {
+                        pin = pin_null_blue
+
+                    }
+                    "done" -> {
+                        pin = pin_null_green
+
+                    }
+                }
+            }
+        }
+
+        marker.setIcon(getBitmapDescriptor(pin))
+    }
+    private fun editMarker(coordinate: Coordinate, marker: Marker) {
+
+        var pin: Int = pin_null_red
+
+
+        var type = coordinate?.type
+        var status = coordinate?.status
+        when (type) {
+            "ambulance" -> {
+                when (status) {
+                    "need help" -> {
+                        pin = pin_ambulance_red
+                    }
+                    "ongoing" -> {
+                        pin = pin_ambulance_blue
+                    }
+                    "done" -> {
+                        pin = pin_ambulance_green
+
+                    }
+                }
+            }
+            "car accident" -> {
+                when (status) {
+                    "need help" -> {
+                        pin = pin_car_accident_red
+                    }
+                    "ongoing" -> {
+                        pin = pin_car_accident_blue
+                    }
+                    "done" -> {
+                        pin = pin_car_accident_green
+
+                    }
+                }
+
+            }
+            "fire" -> {
+                when (status) {
+                    "need help" -> {
+                        pin = pin_fire_red
+
+                    }
+                    "ongoing" -> {
+                        pin = pin_fire_blue
+
+                    }
+                    "done" -> {
+                        pin = pin_fire_green
+
+                    }
+                }
+
+            }
+            "crime" -> {
+                when (status) {
+                    "need help" -> {
+                        pin = pin_crime_red
+
+                    }
+                    "ongoing" -> {
+                        pin = pin_crime_blue
+
+                    }
+                    "done" -> {
+                        pin = pin_crime_green
+
+                    }
+                }
+
+            }
+            null -> {
+                when (status) {
+                    "need help" -> {
+
+                    }
+                    "ongoing" -> {
+                        pin = pin_null_blue
+
+                    }
+                    "done" -> {
+                        pin = pin_null_green
+
+                    }
+                }
+            }
+        }
+
+        marker.setIcon(getBitmapDescriptor(pin))
+    }
+
+    private fun getBitmapDescriptor(id: Int): BitmapDescriptor? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val vectorDrawable = getDrawable(requireContext(), id) as VectorDrawable
+            val h = vectorDrawable.intrinsicHeight
+            val w = vectorDrawable.intrinsicWidth
+            vectorDrawable.setBounds(0, 0, w, h)
+            val bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bm)
+            vectorDrawable.draw(canvas)
+            BitmapDescriptorFactory.fromBitmap(bm)
+        } else {
+            BitmapDescriptorFactory.fromResource(id)
+        }
+    }
+
     fun showDirection(currentLocation: Location, position: LatLng) {
-        var polyline = mMap.addPolyline(
+        val context = GeoApiContext.Builder()
+            .apiKey("AIzaSyAgOzM44kdRUKudckM8o_zerMri0kx-sQc")
+            .build()
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        var result = DirectionsApi.newRequest(context).origin(
+            com.google.maps.model.LatLng(
+                currentLocation?.latitude!!.toDouble(),
+                currentLocation?.longitude!!.toDouble()
+            )
+        ).destination(com.google.maps.model.LatLng(position.latitude, position.longitude))
+            .await()
+//            var direction = gson.toJson(result.routes[0].legs[0].steps[stepCount].polyline.encodedPath)
+        var direction = (result.routes[0].overviewPolyline.encodedPath.toString())
+        var directToPoly: MutableList<com.google.maps.model.LatLng>? = null
+
+        var newDirectToPoly: MutableList<LatLng> = ArrayList()
+        directToPoly = PolylineEncoding.decode(direction)
+        for (polylist in directToPoly!!) {
+            newDirectToPoly.add(
+                LatLng(
+                    polylist.lat,
+                    polylist.lng
+                )
+            )
+        }
+        Log.d(TAG, " newdirecttopoly ${newDirectToPoly}")
+
+
+//            polyline.points.addAll(newDirectToPoly)
+        /*polyline = mMap.addPolyline(
             PolylineOptions()
                 .clickable(true)
-
-        )
-
-
-            val context = GeoApiContext.Builder()
-                .apiKey("AIzaSyAgOzM44kdRUKudckM8o_zerMri0kx-sQc")
-                .build()
-            val gson = GsonBuilder().setPrettyPrinting().create()
-            var result = DirectionsApi.newRequest(context).origin(
-                com.google.maps.model.LatLng(
-                    currentLocation?.latitude!!.toDouble(),
-                    currentLocation?.longitude!!.toDouble()
+                .addAll(
+                    newDirectToPoly
                 )
-            ).destination(com.google.maps.model.LatLng(position.latitude, position.longitude))
-                .await()
-//            var direction = gson.toJson(result.routes[0].legs[0].steps[stepCount].polyline.encodedPath)
-            var direction = (result.routes[0].overviewPolyline.encodedPath.toString())
-            var directToPoly: MutableList<com.google.maps.model.LatLng>? = null
-            Log.d(TAG, " direct to poly is empty: ${directToPoly.isNullOrEmpty()}")
-            var newDirectToPoly: MutableList<LatLng> = ArrayList()
-            Log.d(TAG, "new direct to poly is empty: ${newDirectToPoly.isNullOrEmpty()}")
-            directToPoly = PolylineEncoding.decode(direction)
+        )*/
 
 
+        polyline?.points = newDirectToPoly
+        polyline?.zIndex = 1f
 
 
-
-            for (polylist in directToPoly!!) {
-                newDirectToPoly.add(
-                    LatLng(
-                        polylist.lat,
-                        polylist.lng
-                    )
-                )
-            }
-
-
-
-            polyline = mMap.addPolyline(
-                PolylineOptions()
-                    .clickable(true)
-                    .addAll(
-                        newDirectToPoly
-                    )
-            )
-
-            Log.d(TAG, " polyline points ${polyline.points.size}")
-
-
+        Log.d(TAG, " polyline points ${polyline?.points?.size}")
 
 
     }
@@ -291,8 +747,8 @@ class SendLocationFragment : Fragment() {
         Log.d(TAG, "Direction polyline:  $direction")
         var directToPoly: MutableList<com.google.maps.model.LatLng>? =
             PolylineEncoding.decode(direction)
-        Log.d(TAG, "DirectToPoly polyline to latlngList:  ${directToPoly} ",)
-        Log.d(TAG, "DirectToPoly contain sample 1:  ${directToPoly?.get(0)} ",)
+        Log.d(TAG, "DirectToPoly polyline to latlngList:  ${directToPoly} ")
+        Log.d(TAG, "DirectToPoly contain sample 1:  ${directToPoly?.get(0)} ")
         var newDirectToPoly: MutableList<LatLng> = ArrayList()
         for (polylist in directToPoly!!) {
             Log.d(TAG, "Polylist lang: ${polylist.lng} DirectToPoly on loop: $newDirectToPoly")
@@ -312,6 +768,7 @@ class SendLocationFragment : Fragment() {
                 )
         )
     }
+
     override fun onDetach() {
         super.onDetach()
         sharedViewModel.latlngList.clear()
@@ -340,9 +797,11 @@ class SendLocationFragment : Fragment() {
             locationPermissionGranted = true
             return
         }
-        fusedLocationProviderClient.requestLocationUpdates(locationRequest,
+        fusedLocationProviderClient.requestLocationUpdates(
+            locationRequest,
             locationCallback,
-            Looper.getMainLooper())
+            Looper.getMainLooper()
+        )
     }
 
 
@@ -374,15 +833,17 @@ class SendLocationFragment : Fragment() {
         }
 
         task.addOnFailureListener { exception ->
-            if (exception is ResolvableApiException){
+            if (exception is ResolvableApiException) {
                 // Location settings are not satisfied, but this can be fixed
                 // by showing the user a dialog.
                 try {
                     // Show the dialog by calling startResolutionForResult(),
                     // and check the result in onActivityResult().
                     val REQUEST_CHECK_SETTINGS = 0
-                    exception.startResolutionForResult(activity,
-                        REQUEST_CHECK_SETTINGS)
+                    exception.startResolutionForResult(
+                        activity,
+                        REQUEST_CHECK_SETTINGS
+                    )
                 } catch (sendEx: IntentSender.SendIntentException) {
                     // Ignore the error.
                 }
@@ -418,17 +879,18 @@ class SendLocationFragment : Fragment() {
         mapFragment?.getMapAsync(callback)
         binding.bottomNavigation.selectedItemId = R.id.map
         binding.bottomNavigation.setOnNavigationItemSelectedListener {
-            when(it.itemId){
-                R.id.news->setCurrentFragment("news")
-                R.id.home->setCurrentFragment("home")
-                R.id.map->setCurrentFragment("map")
+            when (it.itemId) {
+                R.id.news -> setCurrentFragment("news")
+                R.id.home -> setCurrentFragment("home")
+                R.id.map -> setCurrentFragment("map")
 
             }
             true
         }
     }
+
     private fun setCurrentFragment(itemId: String) {
-        when(itemId) {
+        when (itemId) {
             "home" -> {
                 val action =
                     SendLocationFragmentDirections.actionSendLocationFragmentToHomeFragment()
@@ -440,6 +902,7 @@ class SendLocationFragment : Fragment() {
                 view?.findNavController()?.navigate(action)
             }
         }
-    }}
+    }
+}
 
 

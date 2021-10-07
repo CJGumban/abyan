@@ -6,6 +6,7 @@ import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Looper
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -21,10 +22,14 @@ import com.example.abyan.viewmodel.ApplicationViewModel
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.Task
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.database.DatabaseReference
+import android.view.MotionEvent
+import android.view.View.OnTouchListener
 
 
 class HomeFragment : Fragment() {
+
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
     private var mCurrentLocation: Location? = null
@@ -107,13 +112,43 @@ class HomeFragment : Fragment() {
             }
             true
         }
-        binding.sendLocationButton.setOnClickListener {
-            try {
-                    getDeviceLocation()
-            } catch (e: Exception) {
-                Log.d(TAG, "${e.message}")
+        var sendButtonCancelled = false
+        binding.sendLocationButton.setOnTouchListener(OnTouchListener
+        { v, event ->
+            sendButtonCancelled = false
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                sendButtonCancelled=false
+                object : CountDownTimer(4000, 1000) {
+
+                    override fun onTick(millisUntilFinished: Long) {
+                        var timeLeft: Long = millisUntilFinished
+                        timeLeft /= 1000
+                        if (sendButtonCancelled){
+                            cancel()
+                        }else{
+                            binding.sendLocationButton.setText("$timeLeft").toString()
+                        }
+                    }
+
+                    override fun onFinish() {
+                        sendDeviceDialog()
+                        Log.d(TAG,"Confirm")
+                    }
+                }.start()
+            } else if (event.action == MotionEvent.ACTION_UP) {
+                // stop your timer.
+
+                sendButtonCancelled=true
+                binding.sendLocationButton.setText("Send").toString()
+
+                Log.d(TAG, "cancelled")
             }
-        }
+            false
+        })
+
+
+
+
         binding.signoutButton.setOnClickListener{
             sharedViewModel.signOut()
             setCurrentFragment("logOut")
@@ -209,18 +244,83 @@ class HomeFragment : Fragment() {
     }
 
 
+    private fun sendLocation(){
+        if (locationPermissionGranted) {
 
-    private fun getDeviceLocation() {
-        try {
-            if (locationPermissionGranted) {
-                        if (mCurrentLocation!=null) {
-                            sharedViewModel.latitude = mCurrentLocation!!.latitude
-                            sharedViewModel.longitude = mCurrentLocation!!.longitude
-                            sharedViewModel.sendLocation()
+            if (mCurrentLocation!=null) {
+
+                val items = arrayOf("ambulance", "car accident", "fire", "crime", "other")
+
+                var typepicker = MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Specify your situation")
+                    .setItems(items) { dialog, which ->
+                        if (items[which].equals("other")){
+                            sharedViewModel.type = null
+                        }else{
+                            sharedViewModel.type = items[which]
                         }
-                    } else {
-                        Log.d(TAG, "Current location is null. Using defaults.")
+                    }
+                    .setOnDismissListener {
+
+                            var c = MaterialAlertDialogBuilder(requireContext())
+                                .setTitle("Location Sent")
+                                .setMessage("Keep calm. Help is on its way")
+                                .setPositiveButton("Got it!") { dialog, which ->
+                                }.show()
+
+                        sharedViewModel.latitude = mCurrentLocation!!.latitude
+                        sharedViewModel.longitude = mCurrentLocation!!.longitude
+                        sharedViewModel.sendLocation()
+                    }
+                    .show()
+
+
+
+
+
             }
+        } else {
+            Log.d(TAG, "Current location is null. Using defaults.")
+        }
+    }
+    private fun sendDeviceDialog() {
+        var timeLeft = 5
+        var cancelled = false
+        var c = MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Sending location")
+            .setMessage("You're location will be send after $timeLeft seconds\n")
+            .setNeutralButton("Cancel") { dialog, which ->
+                cancelled=true
+            }.show()
+
+
+        object : CountDownTimer(5000, 1000) {
+
+            override fun onTick(millisUntilFinished: Long) {
+                var timeLeft: Long = millisUntilFinished
+                timeLeft /= 1000
+                if (cancelled){
+                cancel()
+
+            }   else{
+                    c.setMessage("You're location will be send after $timeLeft seconds")
+
+            }
+            }
+
+            override fun onFinish() {
+                Log.d(SendLocationFragment.TAG,"Timer Done")
+                c.cancel()
+                sendLocation()
+            }
+
+        }.start()
+
+
+
+
+        try {
+
         } catch (e: SecurityException) {
             Log.e("Exception: %s", e.message, e)
         }
