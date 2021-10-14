@@ -12,12 +12,24 @@
         <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/fragment_create_account2.xml" value="0.259375" />
         <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/fragment_home.xml" value="0.171875" />
         <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/fragment_login.xml" value="0.4123076923076923" />
-        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/fragment_news_update.xml" value="0.171875" />
-        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/fragment_send_location.xml" value="0.2" />
+        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/fragment_map_list_view.xml" value="0.22" />
+        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/fragment_news_update.xml" value="0.19662921348314608" />
+        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/fragment_post_message.xml" value="0.25" />
+        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/fragment_send_location.xml" value="0.25" />
         <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/layout_bottom_navigation.xml" value="0.24739583333333334" />
+        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/list_coordinates.xml" value="0.1" />
+        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/list_item.xml" value="0.14629629629629629" />
+        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/list_message.xml" value="0.1" />
         <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/main_activity.xml" value="0.2574074074074074" />
         <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/main_fragment.xml" value="0.3333333333333333" />
+        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/post_message_bar.xml" value="0.22" />
+        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/layout/toolbar_post_message.xml" value="0.19583333333333333" />
         <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/menu/bottom_navigation_menu.xml" value="0.1" />
+        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/menu/layout_news_toolbar.xml" value="0.1890625" />
+        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/menu/map_list_menu.xml" value="0.35989583333333336" />
+        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/menu/message_post_bar.xml" value="0.33" />
+        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/menu/news_update_menu.xml" value="0.1890625" />
+        <entry key="..\:/Cj/Projects/AndroidApplication/Thesis/Abyan/app/src/main/res/menu/post_message_menu.xml" value="0.19583333333333333" />
       </map>
     </option>
   </component>

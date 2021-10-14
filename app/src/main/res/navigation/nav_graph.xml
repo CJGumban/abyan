@@ -42,14 +42,14 @@
         android:label="fragment_confirm_user_data"
         tools:layout="@layout/fragment_confirm_user_data" >
         <action
-            android:id="@+id/action_confirmUserDataFragment_to_sendLocationFragment"
-            app:destination="@id/sendLocationFragment" />
+            android:id="@+id/action_confirmUserDataFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
     </fragment>
     <fragment
         android:id="@+id/sendLocationFragment"
         android:name="com.example.abyan.ui.home.SendLocationFragment"
         android:label="fragment_send_location"
-        tools:layout="@layout/fragment_send_location" >
+        tools:layout="@layout/fragment_send_location">
         <action
             android:id="@+id/action_sendLocationFragment_to_newsUpdateFragment"
             app:destination="@id/newsUpdateFragment" />
@@ -59,6 +59,14 @@
         <action
             android:id="@+id/action_sendLocationFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_sendLocationFragment_to_mapListViewFragment"
+            app:destination="@id/mapListViewFragment" />
+        <argument
+            android:name="coordinateKey"
+            android:defaultValue='""'
+            app:argType="string"
+            app:nullable="true" />
     </fragment>
     <fragment
         android:id="@+id/homeFragment"
@@ -85,6 +93,41 @@
             app:destination="@id/homeFragment" />
         <action
             android:id="@+id/action_newsUpdateFragment_to_sendLocationFragment"
+            app:destination="@id/sendLocationFragment" />
+        <action
+            android:id="@+id/action_newsUpdateFragment_to_postMessageFragment"
+            app:destination="@id/postMessageFragment" />
+        <action
+            android:id="@+id/action_newsUpdateFragment_self"
+            app:destination="@id/newsUpdateFragment"
+            app:launchSingleTop="false" />
+        <argument
+            android:name="deleteKey"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue='""' />
+    </fragment>
+    <fragment
+        android:id="@+id/postMessageFragment"
+        android:name="com.example.abyan.ui.home.PostMessageFragment"
+        android:label="fragment_post_message"
+        tools:layout="@layout/fragment_post_message" >
+        <action
+            android:id="@+id/action_postMessageFragment_to_newsUpdateFragment"
+            app:destination="@id/newsUpdateFragment" />
+        <argument
+            android:name="editKey"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue='""' />
+    </fragment>
+    <fragment
+        android:id="@+id/mapListViewFragment"
+        android:name="com.example.abyan.ui.home.MapListViewFragment"
+        android:label="fragment_map_list_view"
+        tools:layout="@layout/fragment_map_list_view" >
+        <action
+            android:id="@+id/action_mapListViewFragment_to_sendLocationFragment"
             app:destination="@id/sendLocationFragment" />
     </fragment>
 </navigation>

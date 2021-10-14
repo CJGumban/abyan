@@ -78,6 +78,8 @@ class LoginFragment : Fragment() {
                     updateUI()
                 } else {
                     Log.d(TAG, "Login Fragment Sign In: Failed" , task.exception)
+                    Toast.makeText(requireContext(), "Account doesn't exist: ${task.exception}", Toast.LENGTH_SHORT).show()
+
                     updateUI()
                 }
             }
@@ -86,12 +88,11 @@ class LoginFragment : Fragment() {
     private fun updateUI() {
         if (auth.currentUser!=null){
             shareViewModel.auth = auth
-            val action =
-                LoginFragmentDirections.actionLoginFragmentToHomeFragment()
+            val action = LoginFragmentDirections.actionLoginFragmentToHomeFragment()
             view?.findNavController()?.navigate(action)
         }
         else{
-            Toast.makeText(requireContext(), "Account doesn't exist", Toast.LENGTH_SHORT).show()
+           // Toast.makeText(requireContext(), "Account doesn't exist", Toast.LENGTH_SHORT).show()
         }
     }
 

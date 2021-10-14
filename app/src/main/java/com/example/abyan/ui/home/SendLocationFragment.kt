@@ -59,6 +59,7 @@ class SendLocationFragment : Fragment() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private var locationPermissionGranted = true
     private var polyline: Polyline? = null
+    private lateinit var coordinateKey: String
 
 
 //    private var context: GeoApiContext? = null
@@ -67,8 +68,10 @@ class SendLocationFragment : Fragment() {
     companion object {
 
         const val TAG = "AppTesting"
+        val COORDINATEKEY = "coordinateKey"
 
     }
+
 
     private fun isPermissionGranted(): Boolean {
         return ContextCompat.checkSelfPermission(
@@ -125,15 +128,31 @@ class SendLocationFragment : Fragment() {
 
 
 
-    private var callback = OnMapReadyCallback { googleMap ->
+    private var callback = OnMapReadyCallback{ googleMap ->
+
         getmMap(googleMap)
         mMap = googleMap
-        val roxas = LatLng(11.5529, 122.7407)
+        var roxas = LatLng(11.5529, 122.7407)
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(roxas))
+        mMap.moveCamera(CameraUpdateFactory.zoomBy(20f))
+
+        if(coordinateKey!=null||coordinateKey!=""){
+            sharedViewModel.coordinatelist.forEach {coordinate->
+                if (coordinate.key == coordinateKey){
+                    roxas = LatLng(coordinate.lat!!,coordinate.lng!!)
+                    mMap.moveCamera(CameraUpdateFactory.newLatLng(roxas))
+                    mMap.moveCamera(CameraUpdateFactory.zoomBy(20f))
+                    Log.d("testingthis","coodinatekey is null = ${coordinateKey}")
+
+                }
+            }
+
+        }
+        Log.d("testingthis","coordinatekey is null = ${coordinateKey}")
+
         mMap.setMinZoomPreference(10f)
         mMap.setMaxZoomPreference(30f)
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(roxas))
-        mMap.moveCamera(CameraUpdateFactory.zoomTo(10f))
         mMap.isTrafficEnabled = true
         sharedViewModel.getLocationsListener()
         enableMyLocation()
@@ -148,7 +167,7 @@ class SendLocationFragment : Fragment() {
         mMap.setOnInfoWindowClickListener { marker ->
             var markerCoordinate: Coordinate = marker.tag as Coordinate
             Log.d(TAG, "Coordinate key: ${markerCoordinate.toMap().toString()}")
-            //sharedViewModel.changeStatus(coordinate.key.toString(),"delete")
+
 
             try {
                 when {
@@ -158,7 +177,6 @@ class SendLocationFragment : Fragment() {
                             TAG,
                             "marker on route ${sharedViewModel.markerOnRoute.toMap().toString()}"
                         )
-
                         MaterialAlertDialogBuilder(requireContext())
                             .setTitle("Get Direction?")
                             .setMessage("Get Directions to ${marker.title}")
@@ -166,11 +184,14 @@ class SendLocationFragment : Fragment() {
                                 // Respond to neutral button press
                             }
                             .setPositiveButton("Accept") { dialog, which ->
-                                //markerOnRoute not null
+                                //code if create route accepted
 
-                                    if (!sharedViewModel.markerOnRoute?.isActive!!||sharedViewModel.markerOnRoute.coordinate==null) {
-                                        sharedViewModel.activateRoute(markerCoordinate)
-                                        sharedViewModel.changeStatus(markerCoordinate, "ongoing")
+                                    if (!sharedViewModel.markerOnRoute?.isActive!!||sharedViewModel.markerOnRoute.marker==null) {
+                                        //to this if there's no active route
+                                            //this code activate route and get marker's coordinate
+                                        sharedViewModel.activateRoute(marker)
+//                                      update the coordinate status to ongoing and send data back to database
+                                        sharedViewModel.changeStatus(marker.tag as Coordinate, "ongoing")
                                         (marker.tag as Coordinate).status = "ongoing"
                                         editMarker(marker)
                                         object : CountDownTimer(500000, 5000) {
@@ -208,8 +229,10 @@ class SendLocationFragment : Fragment() {
                                                     .setPositiveButton("Proceed") { dialog, which ->
                                                         sharedViewModel.changeStatus(sharedViewModel.markerOnRoute?.coordinate!!, "need help")
                                                         (sharedViewModel.markerOnRoute?.coordinate as Coordinate).status = "need help"
-                                                        addMarker(sharedViewModel.markerOnRoute?.coordinate!!)
-                                                        sharedViewModel.activateRoute(markerCoordinate)
+                                                        editMarker(sharedViewModel.markerOnRoute?.coordinate!!,sharedViewModel.markerOnRoute?.marker!!)
+                                                        sharedViewModel.activateRoute(marker)
+                                                        (marker.tag as Coordinate).status = "ongoing"
+                                                        editMarker(marker)
                                                         showDirection(
                                                             mCurrentLocation!!,
                                                             LatLng(
@@ -257,7 +280,10 @@ class SendLocationFragment : Fragment() {
                                     // Respond to neutral button press
                                 }
                                 .setPositiveButton("Accept") { dialog, which ->
-                                    sharedViewModel.activateRoute(markerCoordinate)
+                                    sharedViewModel.activateRoute(marker)
+                                    sharedViewModel.changeStatus(marker.tag as Coordinate, "ongoing")
+                                    (marker.tag as Coordinate).status = "ongoing"
+                                    editMarker(marker)
                                     object : CountDownTimer(500000, 5000) {
                                         override fun onTick(millisUntilFinished: Long) {
                                             if (sharedViewModel.markerOnRoute?.isActive == true) {
@@ -287,8 +313,10 @@ class SendLocationFragment : Fragment() {
                                             0 -> {
                                                 sharedViewModel.changeStatus(markerCoordinate, "need help")
                                                 sharedViewModel.deactivateRoute()
-                                                mMap.clear()
-                                                refreshMapPin()
+                                                polyline?.points = emptyList()
+                                                (marker.tag as Coordinate).status = "need help"
+                                                editMarker(marker.tag as Coordinate, marker)
+
                                             }
                                             1 -> {
 
@@ -296,6 +324,9 @@ class SendLocationFragment : Fragment() {
                                             2 -> {
                                                 sharedViewModel.changeStatus(markerCoordinate, "done")
                                                 sharedViewModel.deactivateRoute()
+                                                polyline?.points = emptyList()
+                                                (marker.tag as Coordinate).status = "done"
+                                                editMarker(marker)
                                             }
                                         }
                                     }.show()
@@ -310,11 +341,14 @@ class SendLocationFragment : Fragment() {
                                         // Respond to neutral button press
                                     }
                                     .setPositiveButton("Proceed") { dialog, which ->
-                                        sharedViewModel.changeStatus(
-                                            sharedViewModel.markerOnRoute?.coordinate!!,
-                                            "need help"
-                                        )
-                                        sharedViewModel.activateRoute(markerCoordinate)
+
+                                        sharedViewModel.changeStatus(sharedViewModel.markerOnRoute?.coordinate!!, "need help")
+                                        (sharedViewModel.markerOnRoute?.coordinate as Coordinate).status = "need help"
+                                        editMarker(sharedViewModel.markerOnRoute?.coordinate!!,sharedViewModel.markerOnRoute?.marker!!)
+                                        sharedViewModel.activateRoute(marker)
+                                        (marker.tag as Coordinate).status = "ongoing"
+                                        editMarker(marker)
+
                                         showDirection(
                                             mCurrentLocation!!,
                                             LatLng(
@@ -472,7 +506,6 @@ class SendLocationFragment : Fragment() {
                 }
             }
         }
-
 
         mMap.addMarker(
             MarkerOptions()
@@ -851,12 +884,21 @@ class SendLocationFragment : Fragment() {
         }
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            coordinateKey = it.getString(COORDINATEKEY).toString()
+            Log.d("testingthis","Coordinate key oncreate for send location $coordinateKey")
+
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult?) {
@@ -871,12 +913,16 @@ class SendLocationFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        Log.d("testingthis"," onview created coordinatekey is null = ${coordinateKey}")
         super.onViewCreated(view, savedInstanceState)
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(activity)
         createLocationRequest()
         startLocationUpdates()
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(callback)
+        binding.buttonList.setOnClickListener{
+            setCurrentFragment("list")
+        }
         binding.bottomNavigation.selectedItemId = R.id.map
         binding.bottomNavigation.setOnNavigationItemSelectedListener {
             when (it.itemId) {
@@ -901,6 +947,11 @@ class SendLocationFragment : Fragment() {
                     SendLocationFragmentDirections.actionSendLocationFragmentToNewsUpdateFragment()
                 view?.findNavController()?.navigate(action)
             }
+            "list" -> {
+            val action =
+                SendLocationFragmentDirections.actionSendLocationFragmentToMapListViewFragment()
+            view?.findNavController()?.navigate(action)
+        }
         }
     }
 }

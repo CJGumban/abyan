@@ -6,8 +6,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.abyan.model.Coordinate
 import com.example.abyan.model.MarkerOnRoute
+import com.example.abyan.model.Post
 import com.example.abyan.model.User
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -17,6 +19,7 @@ import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
 import java.util.*
 import java.util.Locale
+import kotlin.collections.ArrayList
 
 
 class ApplicationViewModel : ViewModel() {
@@ -24,9 +27,12 @@ class ApplicationViewModel : ViewModel() {
     var auth : FirebaseAuth = Firebase.auth
     var database: DatabaseReference = Firebase.database.reference
     private var userMutableLiveData = MutableLiveData<FirebaseUser>()
-    private var currentUser   = userMutableLiveData.value
+    private var currentUser   = auth.currentUser
+
+
     lateinit var coordinatesRef: DatabaseReference
     lateinit var coordinatesListener: ValueEventListener
+
 
     var lastName: String? = null
     var firstName: String? = null
@@ -40,7 +46,8 @@ class ApplicationViewModel : ViewModel() {
     var type: String? = null
     var latlngList: MutableList<LatLng> = ArrayList()
     var coordinatelist: MutableList<Coordinate> = ArrayList()
-    var markerOnRoute = MarkerOnRoute(null, false)
+    var postList: MutableList<Post> = ArrayList()
+    var markerOnRoute = MarkerOnRoute(null, null,false)
     companion object{
         const val TAG = "AppTesting"
     }
@@ -66,7 +73,7 @@ class ApplicationViewModel : ViewModel() {
                 coordinatelist.clear()
                 Log.d(TAG, "Number of coordinates: ${dataSnapshot.childrenCount}")
                 dataSnapshot.children.forEach { child ->
-                    // Extract Message object from the DataSnapshot
+                    // Extract Post object from the DataSnapshot
                     val coordinate: Coordinate? = child.getValue<Coordinate>()
 
 
@@ -120,6 +127,7 @@ class ApplicationViewModel : ViewModel() {
         //read once using a listener
         postReference.addValueEventListener(postListener)
         // [END post_value_event_listener]
+
     }
 
     fun sendLocation() {
@@ -218,12 +226,13 @@ class ApplicationViewModel : ViewModel() {
 
     }
 
-    fun activateRoute(coordinate: Coordinate){
-        markerOnRoute?.coordinate = coordinate
+    fun activateRoute(marker: Marker){
+        markerOnRoute?.marker = marker
+        markerOnRoute?.coordinate = marker.tag as Coordinate
         markerOnRoute?.isActive = true
-        Log.d(TAG,"acivate Route: ${markerOnRoute.coordinate.toString()}")
     }
     fun deactivateRoute() {
+        markerOnRoute?.marker = null
         markerOnRoute?.coordinate = null
         markerOnRoute?.isActive = false
     }
@@ -292,8 +301,7 @@ class ApplicationViewModel : ViewModel() {
                 {
                         task ->
                     if (task.isSuccessful){
-                        userMutableLiveData.postValue(auth.currentUser)
-                        Log.d(TAG, "Create Account: Success $userMutableLiveData")
+
 
                     }else{
                         Log.d(TAG, "Create Account: ${email + password} Failed" + task.exception)
@@ -326,10 +334,49 @@ class ApplicationViewModel : ViewModel() {
 
     fun createAccount(){
         register(emailNumber.toString() ,password.toString())
-        writeNewPost()
+        writeNewUser()
     }
 
-    private fun writeNewPost() {
+
+
+
+
+    fun deletePost(key:String) {
+        database.child("post").child("$key").removeValue()
+            .addOnSuccessListener {
+                Log.d(TAG,"Change status: Delete success")
+            }
+            .addOnFailureListener {
+                Log.d(TAG,"Change status: Delete failure")
+            }
+
+
+    }
+    fun editPost(post: Post, title: String = "",body: String = "") {
+        post.title = title
+        post.body = body
+        val postValues = post.toMap()
+        val childUpdates = hashMapOf<String, Any>(
+            "post/${post.key}" to postValues,
+            "user-post/${post.key}" to postValues,
+        )
+        database.updateChildren(childUpdates)
+            .addOnSuccessListener { Log.w(TAG,"edit post successful")}
+            .addOnFailureListener {
+                Log.w(TAG, "edit post Failed")
+            }}
+
+
+
+     fun writePost(title: String = "",body: String = "") {
+
+
+        var tsLong = System.currentTimeMillis() / 1000
+        Log.d(TAG, " timestamp  $tsLong")
+        val cal = Calendar.getInstance(Locale.ENGLISH)
+        cal.timeInMillis = tsLong * 1000L
+        val date: String = DateFormat.format("MMM dd, yyyy", cal).toString()
+
         val userId = auth.currentUser?.uid.toString()
         val email = auth.currentUser?.email
         // Create new post at /user-posts/$userid/$postid and at
@@ -341,6 +388,73 @@ class ApplicationViewModel : ViewModel() {
         }
         Log.w(TAG, "$key")
 
+        val message = Post(userId,key,email,title, body, date)
+
+
+        val messageValues = message.toMap()
+
+        val childUpdates = hashMapOf<String, Any>(
+            "/post/$key" to messageValues,
+            "user-post/$userId/$key" to messageValues
+
+            )
+
+        database.updateChildren(childUpdates)
+            .addOnSuccessListener { Log.w(TAG,"it worked")}
+            .addOnFailureListener {
+                Log.w(TAG, Exception())
+            }
+
+    }
+
+    fun getPostListener() {
+        // [START basic_listen]
+        // Get a reference to Messages and attach a listener
+        try {
+
+
+            coordinatesRef = database.child("post")
+            coordinatesListener = object : ValueEventListener {
+
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    // New data at this path. This method will be called after every change in the
+                    // data at this path or a subpath.
+                    postList.clear()
+                    dataSnapshot.children.forEach { child ->
+                        // Extract Post object from the DataSnapshot
+                        val post: Post? = child.getValue<Post>()
+
+
+                        postList.add(post!!)
+                    }
+                    postList.reverse()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    // Could not successfully listen for data, log the error
+                    Log.e(TAG, "coordinates:onCancelled: ${error.message}")
+                }
+            }
+            coordinatesRef.addValueEventListener(coordinatesListener)
+            // [END basic_listen]
+        }catch (e: java.lang.Exception){
+            Log.e(TAG, "error ${e.message}")
+        }
+    }
+
+
+
+    private fun writeNewUser() {
+        val userId = auth.currentUser?.uid.toString()
+        val email = auth.currentUser?.email
+        // Create new post at /user-posts/$userid/$postid and at
+        // /posts/$postid simultaneously
+        val key = database.push().key
+        if (key == null) {
+            Log.w(TAG, "Couldn't get push key for posts")
+            return
+        }
+        Log.w(TAG, "$key")
         val user = User(email, firstName, lastName, birthDate, gender, address)
         val userValues = user.toMap()
 

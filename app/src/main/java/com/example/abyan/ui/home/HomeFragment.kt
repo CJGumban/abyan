@@ -95,6 +95,7 @@ class HomeFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         sharedViewModel.getLocationsListener()
+        sharedViewModel.getPostListener()
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
