@@ -26,20 +26,21 @@ class ApplicationViewModel : ViewModel() {
 
     var auth : FirebaseAuth = Firebase.auth
     var database: DatabaseReference = Firebase.database.reference
-    private var userMutableLiveData = MutableLiveData<FirebaseUser>()
     private var currentUser   = auth.currentUser
-
 
     lateinit var coordinatesRef: DatabaseReference
     lateinit var coordinatesListener: ValueEventListener
+    var currentUserData = User()
 
 
-    var lastName: String? = null
-    var firstName: String? = null
-    var emailNumber:String? = null
+
+    var emailNumber:String? = ""
+    var confirmPassword:String? = null
     var password:String? = null
-    var gender: String? = null
+    var firstName: String? = null
+    var lastName: String? = null
     var birthDate: String? = null
+    var gender: String? = null
     var address: String? = null
     var longitude: Double? = null
     var latitude: Double? = null
@@ -52,11 +53,8 @@ class ApplicationViewModel : ViewModel() {
         const val TAG = "AppTesting"
     }
 
-    fun signOut() {
-        //method to sign out account
-        Firebase.auth.signOut()
 
-    }
+
 
     fun getLocationsListener() {
         // [START basic_listen]
@@ -295,21 +293,19 @@ class ApplicationViewModel : ViewModel() {
             }
         }
     }
-    fun register(email: String, password: String) {
+
+    fun registerUser(){
+        currentUserData = User(emailNumber,firstName, lastName, birthDate, gender, address,"user")
+    }
+
+    fun Register(email: String, password: String) {
             auth.createUserWithEmailAndPassword(email,password)
                 .addOnCompleteListener()
-                {
-                        task ->
+                { task ->
                     if (task.isSuccessful){
-
-
                     }else{
                         Log.d(TAG, "Create Account: ${email + password} Failed" + task.exception)
                     }
-
-
-
-
         }
     }
 
@@ -332,10 +328,7 @@ class ApplicationViewModel : ViewModel() {
         return true
     }
 
-    fun createAccount(){
-        register(emailNumber.toString() ,password.toString())
-        writeNewUser()
-    }
+
 
 
 
@@ -444,32 +437,6 @@ class ApplicationViewModel : ViewModel() {
 
 
 
-    private fun writeNewUser() {
-        val userId = auth.currentUser?.uid.toString()
-        val email = auth.currentUser?.email
-        // Create new post at /user-posts/$userid/$postid and at
-        // /posts/$postid simultaneously
-        val key = database.push().key
-        if (key == null) {
-            Log.w(TAG, "Couldn't get push key for posts")
-            return
-        }
-        Log.w(TAG, "$key")
-        val user = User(email, firstName, lastName, birthDate, gender, address)
-        val userValues = user.toMap()
-
-        val childUpdates = hashMapOf<String, Any>(
-            "/user/$key" to userValues,
-
-        )
-
-        database.updateChildren(childUpdates)
-            .addOnSuccessListener { Log.w(TAG,"it worked")}
-            .addOnFailureListener {
-                Log.w(TAG, Exception())
-            }
-
-    }
 
     fun loggedIn():Boolean{
         return currentUser != null

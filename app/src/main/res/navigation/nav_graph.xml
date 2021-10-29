@@ -8,7 +8,8 @@
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.abyan.ui.LoginFragment"
-        android:label="LoginFragment" >
+        android:label="LoginFragment"
+        tools:layout="@layout/fragment_login">
         <action
             android:id="@+id/action_loginFragment_to_createAccount1Fragment"
             app:destination="@id/createAccount1Fragment" />
@@ -22,7 +23,8 @@
     <fragment
         android:id="@+id/createAccount1Fragment"
         android:name="com.example.abyan.ui.CreateAccount1Fragment"
-        android:label="CreateAccount1Fragment" >
+        android:label="CreateAccount1Fragment"
+        tools:layout="@layout/fragment_create_account1">
         <action
             android:id="@+id/action_createAccount1Fragment_to_createAccount2Fragment"
             app:destination="@id/createAccount2Fragment" />
@@ -72,13 +74,16 @@
         android:id="@+id/homeFragment"
         android:name="com.example.abyan.ui.home.HomeFragment"
         android:label="fragment_home"
-        tools:layout="@layout/fragment_home" >
+        tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_homeFragment_to_newsUpdateFragment"
             app:destination="@id/newsUpdateFragment" />
         <action
             android:id="@+id/action_homeFragment_to_sendLocationFragment"
             app:destination="@id/sendLocationFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
         <action
             android:id="@+id/action_homeFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
@@ -130,4 +135,9 @@
             android:id="@+id/action_mapListViewFragment_to_sendLocationFragment"
             app:destination="@id/sendLocationFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.abyan.ui.home.ProfileFragment"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_profile" />
 </navigation>

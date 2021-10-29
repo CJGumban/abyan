@@ -43,8 +43,6 @@ class CoordinateAdapter(private val context: Context,
         holder.timeDate.text = "6:00 Aug 02, 2020"
         holder.icon.setImageResource(setMarker(item))
     holder.view.setOnClickListener {
-        Log.d("testingthis","coordinate adapter coordinatekey is null = ${item.key}")
-
         val action = MapListViewFragmentDirections.actionMapListViewFragmentToSendLocationFragment(item.key)
         holder.view.findNavController().navigate(action)
     }

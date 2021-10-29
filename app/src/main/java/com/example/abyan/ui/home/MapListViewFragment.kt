@@ -36,7 +36,7 @@ class MapListViewFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.d("Apptesting", " mapListView coordinateList: ${coordinateList.toString()}")
+        Log.d("Apptesting", " mapListView coordinateList: ${coordinateList}")
 
         coordinateList.clear()
         applicationViewModel.coordinatelist.forEach { coordinate ->

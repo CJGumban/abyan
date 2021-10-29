@@ -26,6 +26,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.database.DatabaseReference
 import android.view.MotionEvent
 import android.view.View.OnTouchListener
+import java.lang.Exception
 
 
 class HomeFragment : Fragment() {
@@ -34,7 +35,7 @@ class HomeFragment : Fragment() {
     private lateinit var locationCallback: LocationCallback
     private var mCurrentLocation: Location? = null
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-    private var locationPermissionGranted = true
+    private var locationPermissionGranted = false
     private lateinit var binding: FragmentHomeBinding
     private val sharedViewModel : ApplicationViewModel by activityViewModels()
     lateinit var database : DatabaseReference
@@ -42,6 +43,7 @@ class HomeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        Log.d(TAG, "location callback $mCurrentLocation")
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult?) {
@@ -49,8 +51,10 @@ class HomeFragment : Fragment() {
                 for (location in locationResult.locations){
                     // Update UI with location data
                     // ...
-                    mCurrentLocation = location
 
+
+                    mCurrentLocation = location
+                    Log.d(TAG, "location callback $mCurrentLocation")
                 }
             }
         }
@@ -94,17 +98,23 @@ class HomeFragment : Fragment() {
     }
     override fun onStart() {
         super.onStart()
+        startLocationUpdates()
         sharedViewModel.getLocationsListener()
         sharedViewModel.getPostListener()
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        startLocationUpdates()
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(activity)
         database = sharedViewModel.database
         sharedViewModel.addPostEventListener(database.child("coordinates"))
         //code for making bottomnav item visible
 //      binding.bottomNavigation.menu[0].isVisible = false
         binding.bottomNavigation.selectedItemId = R.id.home
+//        binding.buttonProfile.setOnClickListener {
+//            setCurrentFragment("profile")
+//        }
+        binding.topAppBar.setNavigationOnClickListener { setCurrentFragment("profile") }
         binding.bottomNavigation.setOnNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.news -> setCurrentFragment("news")
@@ -150,11 +160,19 @@ class HomeFragment : Fragment() {
 
 
 
-        binding.signoutButton.setOnClickListener{
-            sharedViewModel.signOut()
-            setCurrentFragment("logOut")
-
+        binding.signoutButton.setOnClickListener {
+            sharedViewModel.auth.signOut()
+            sharedViewModel.auth.addAuthStateListener {
+                try {
+                if (sharedViewModel.auth.currentUser == null) {
+                    setCurrentFragment("logout")
+                }
+            }catch (e: Exception){
+            Log.d(TAG,"Error ${ e.message}")
         }
+            }
+        }
+
         createLocationRequest()
         startLocationUpdates()
 
@@ -174,6 +192,8 @@ class HomeFragment : Fragment() {
         val client: SettingsClient = LocationServices.getSettingsClient(requireActivity())
         val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
         task.addOnSuccessListener { locationSettingsResponse ->
+
+            Log.d(TAG, "")
 
             // All location settings are satisfied. The client can initialize
             // location requests here.
@@ -212,11 +232,16 @@ class HomeFragment : Fragment() {
                 view?.findNavController()?.navigate(action)
             }
 
-            "logOut" -> {
+            "logout" -> {
                 val action =
                 HomeFragmentDirections.actionHomeFragmentToLoginFragment()
                 view?.findNavController()?.navigate(action)
             }
+            "profile" -> {
+            val action =
+                HomeFragmentDirections.actionHomeFragmentToProfileFragment()
+            view?.findNavController()?.navigate(action)
+        }
 
         }
     }
@@ -246,6 +271,10 @@ class HomeFragment : Fragment() {
 
 
     private fun sendLocation(){
+        Log.d(TAG, "Send location")
+        Log.d(TAG, "locationpermissiongranted $locationPermissionGranted")
+        Log.d(TAG, "currtentlocation not null ${mCurrentLocation!=null}")
+
         if (locationPermissionGranted) {
 
             if (mCurrentLocation!=null) {
@@ -253,6 +282,7 @@ class HomeFragment : Fragment() {
                 val items = arrayOf("ambulance", "car accident", "fire", "crime", "other")
 
                 var typepicker = MaterialAlertDialogBuilder(requireContext())
+
                     .setTitle("Specify your situation")
                     .setItems(items) { dialog, which ->
                         if (items[which].equals("other")){
@@ -274,6 +304,8 @@ class HomeFragment : Fragment() {
                         sharedViewModel.sendLocation()
                     }
                     .show()
+                    typepicker.setCanceledOnTouchOutside(false)
+
 
 
 
@@ -316,6 +348,7 @@ class HomeFragment : Fragment() {
             }
 
         }.start()
+
 
 
 

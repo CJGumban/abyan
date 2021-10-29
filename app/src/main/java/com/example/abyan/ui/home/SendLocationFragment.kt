@@ -68,7 +68,7 @@ class SendLocationFragment : Fragment() {
     companion object {
 
         const val TAG = "AppTesting"
-        val COORDINATEKEY = "coordinateKey"
+        const val COORDINATEKEY = "coordinateKey"
 
     }
 
@@ -133,30 +133,38 @@ class SendLocationFragment : Fragment() {
         getmMap(googleMap)
         mMap = googleMap
         var roxas = LatLng(11.5529, 122.7407)
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(roxas))
-        mMap.moveCamera(CameraUpdateFactory.zoomBy(20f))
 
-        if(coordinateKey!=null||coordinateKey!=""){
-            sharedViewModel.coordinatelist.forEach {coordinate->
-                if (coordinate.key == coordinateKey){
-                    roxas = LatLng(coordinate.lat!!,coordinate.lng!!)
-                    mMap.moveCamera(CameraUpdateFactory.newLatLng(roxas))
-                    mMap.moveCamera(CameraUpdateFactory.zoomBy(20f))
-                    Log.d("testingthis","coodinatekey is null = ${coordinateKey}")
-
-                }
-            }
-
-        }
-        Log.d("testingthis","coordinatekey is null = ${coordinateKey}")
 
         mMap.setMinZoomPreference(10f)
         mMap.setMaxZoomPreference(30f)
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
         mMap.isTrafficEnabled = true
         sharedViewModel.getLocationsListener()
+
         enableMyLocation()
         refreshMapPin()
+
+        if(coordinateKey!=""){
+            sharedViewModel.coordinatelist.forEach {coordinate->
+                if (coordinate.key == coordinateKey){
+                    roxas = LatLng(coordinate.lat!!,coordinate.lng!!)
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(roxas, 15f))
+                    Log.d("testingthis","on map ready coodinatekey is not null = ${coordinateKey}" +
+                            "\n map latlang = $roxas" +
+                            "\n mMap cameraposition ${mMap.cameraPosition}")
+
+
+                }
+            }
+
+        } else if (coordinateKey.equals("")){
+            roxas = LatLng(11.5529, 122.7407)
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(roxas, 12f))
+            Log.d("testingthis","on map ready coodinatekey is null = ${coordinateKey}"+
+                    "\n mMap cameraposition ${mMap.cameraPosition}")
+        }
+
+
 
 
 
@@ -666,6 +674,7 @@ class SendLocationFragment : Fragment() {
                     "need help" -> {
                         pin = pin_crime_red
 
+
                     }
                     "ongoing" -> {
                         pin = pin_crime_blue
@@ -728,9 +737,11 @@ class SendLocationFragment : Fragment() {
 //            var direction = gson.toJson(result.routes[0].legs[0].steps[stepCount].polyline.encodedPath)
         var direction = (result.routes[0].overviewPolyline.encodedPath.toString())
         var directToPoly: MutableList<com.google.maps.model.LatLng>? = null
+        Log.d(TAG, " newdirecttopoly ${direction}")
 
         var newDirectToPoly: MutableList<LatLng> = ArrayList()
         directToPoly = PolylineEncoding.decode(direction)
+        Log.d(TAG, " newdirecttopoly ${directToPoly}")
         for (polylist in directToPoly!!) {
             newDirectToPoly.add(
                 LatLng(
@@ -756,7 +767,7 @@ class SendLocationFragment : Fragment() {
         polyline?.zIndex = 1f
 
 
-        Log.d(TAG, " polyline points ${polyline?.points?.size}")
+        Log.d(TAG, " polyline points ${polyline?.points}")
 
 
     }
@@ -888,7 +899,7 @@ class SendLocationFragment : Fragment() {
         super.onCreate(savedInstanceState)
         arguments?.let {
             coordinateKey = it.getString(COORDINATEKEY).toString()
-            Log.d("testingthis","Coordinate key oncreate for send location $coordinateKey")
+
 
         }
     }
@@ -913,7 +924,6 @@ class SendLocationFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        Log.d("testingthis"," onview created coordinatekey is null = ${coordinateKey}")
         super.onViewCreated(view, savedInstanceState)
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(activity)
         createLocationRequest()

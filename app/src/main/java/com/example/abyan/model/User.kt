@@ -5,12 +5,13 @@ import com.google.firebase.database.IgnoreExtraProperties
 
 @IgnoreExtraProperties
 data class User(
-    val email: String? = null,
-    val firstName: String? = null,
-    val lastName: String? = null,
-    val birthDate: String? = null,
-    val gender: String? = null,
-    val address: String? = null){
+    var email: String? = null,
+    var firstName: String? = null,
+    var lastName: String? = null,
+    var birthDate: String? = null,
+    var gender: String? = null,
+    var address: String? = null,
+    var role: String? = null){
     @Exclude
     fun toMap(): Map<String,Any? >{
         return mapOf(
@@ -19,7 +20,8 @@ data class User(
             "lastName" to lastName,
             "birthDate" to birthDate,
             "gender" to gender,
-            "address" to address
+            "address" to address,
+            "role" to role
         )
     }
 
