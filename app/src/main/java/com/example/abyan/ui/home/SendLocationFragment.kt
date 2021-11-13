@@ -144,27 +144,30 @@ class SendLocationFragment : Fragment() {
         enableMyLocation()
         refreshMapPin()
 
-        if(coordinateKey!=""){
+        if(coordinateKey.equals("")){
+            roxas = LatLng(11.5529, 122.7407)
+
+            Log.d("testingthis","on map ready coodinatekey is null = ${coordinateKey}"+
+                    "\n mMap cameraposition ${mMap.cameraPosition}")
+
+        } else {
             sharedViewModel.coordinatelist.forEach {coordinate->
                 if (coordinate.key == coordinateKey){
                     roxas = LatLng(coordinate.lat!!,coordinate.lng!!)
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(roxas, 15f))
+
                     Log.d("testingthis","on map ready coodinatekey is not null = ${coordinateKey}" +
                             "\n map latlang = $roxas" +
                             "\n mMap cameraposition ${mMap.cameraPosition}")
 
 
                 }
-            }
+                Log.d("testingthis","on map ready coodinatekey is null = ${coordinateKey}"+
+                        "\n mMap cameraposition ${mMap.cameraPosition}")
 
-        } else if (coordinateKey.equals("")){
-            roxas = LatLng(11.5529, 122.7407)
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(roxas, 12f))
-            Log.d("testingthis","on map ready coodinatekey is null = ${coordinateKey}"+
-                    "\n mMap cameraposition ${mMap.cameraPosition}")
+            }
         }
 
-
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(roxas, 12f))
 
 
 

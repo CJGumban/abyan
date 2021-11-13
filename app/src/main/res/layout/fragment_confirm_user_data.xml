@@ -77,7 +77,7 @@
                 android:id="@+id/number_email_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Number/Email"
+                android:text="E-mail"
                 android:textAllCaps="true"
                 android:textStyle="normal" />
 

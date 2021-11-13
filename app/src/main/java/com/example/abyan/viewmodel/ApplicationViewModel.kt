@@ -1,7 +1,10 @@
 package com.example.abyan.viewmodel
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.text.format.DateFormat
 import android.util.Log
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.abyan.model.Coordinate
@@ -17,6 +20,8 @@ import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
+import java.security.Timestamp
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.Locale
 import kotlin.collections.ArrayList
@@ -33,7 +38,7 @@ class ApplicationViewModel : ViewModel() {
     var currentUserData = User()
 
 
-
+    var birthdateToString:String = ""
     var emailNumber:String? = ""
     var confirmPassword:String? = null
     var password:String? = null
@@ -53,6 +58,39 @@ class ApplicationViewModel : ViewModel() {
         const val TAG = "AppTesting"
     }
 
+   /* fun allowOffline(){
+        Firebase.database.setPersistenceEnabled(true)
+
+        val userRef = Firebase.database.getReference("user")
+        userRef.keepSynced(true)
+
+    }*/
+        fun getUser() {
+
+            database.child("user").get().addOnSuccessListener {
+                Log.i(TAG, "user. children ${it.children }}" +
+                        "\n datasnapshot.value ${it.value}" +
+                        "\n key ${it.key}" +
+                        "\n priority ${it.priority}" +
+                        "\n ref ${it.ref}")
+            }.addOnFailureListener {
+                Log.e("firebase", "Error getting data", it)
+            }
+
+        }
+
+    fun birthdateToString(){
+        if (birthDate.isNullOrEmpty()){
+
+        }else if (!birthDate.isNullOrEmpty()){
+            var timestamp: Long? = currentUserData?.birthDate?.toLong()
+            var date: Date = Date(timestamp?.toLong()!!)
+            var dateFormat: SimpleDateFormat = SimpleDateFormat("YYYY/MM/dd")
+            birthdateToString  = dateFormat.format(date)
+            Log.d(TAG,"birth ${birthdateToString.toString()}")}
+
+
+    }
 
 
 
@@ -70,6 +108,7 @@ class ApplicationViewModel : ViewModel() {
                 // data at this path or a subpath.
                 coordinatelist.clear()
                 Log.d(TAG, "Number of coordinates: ${dataSnapshot.childrenCount}")
+
                 dataSnapshot.children.forEach { child ->
                     // Extract Post object from the DataSnapshot
                     val coordinate: Coordinate? = child.getValue<Coordinate>()
@@ -103,6 +142,7 @@ class ApplicationViewModel : ViewModel() {
     fun addPostEventListener(postReference: DatabaseReference) {
         // [START post_value_event_listener]
         val postListener = object : ValueEventListener {
+
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // Get Post object and use the values to update the UI
 
@@ -137,7 +177,6 @@ class ApplicationViewModel : ViewModel() {
                currentCoordinateKey = coordinate.key
                Log.d(TAG, "sendLocationMethod: Current user exist")
            }
-
        }
         if (userExist){
             var tsLong = System.currentTimeMillis() / 1000
@@ -146,7 +185,6 @@ class ApplicationViewModel : ViewModel() {
             cal.timeInMillis = tsLong * 1000L
             val date: String = DateFormat.format("MM-dd hh:mm", cal).toString()
             Log.d(TAG,"time stamp to date: $date")
-
             val userId = auth.currentUser?.uid.toString()
             val email = auth.currentUser?.email
             // Create new post at /user-posts/$userid/$postid and at
@@ -211,9 +249,7 @@ class ApplicationViewModel : ViewModel() {
                 //coordinates gets record of all of the coordinates send
                 //active-coordinates records coordinates for each email if email gets new coordinate the older coordinates get overwritten
                 //"active-coordinates/@email" to coordinateValues,
-
-
-            )
+         )
             database.updateChildren(childUpdates)
                 .addOnSuccessListener { Log.w(TAG,"it worked")}
                 .addOnFailureListener {
@@ -234,11 +270,6 @@ class ApplicationViewModel : ViewModel() {
         markerOnRoute?.coordinate = null
         markerOnRoute?.isActive = false
     }
-
-
-
-
-
 
     fun changeStatus(coordinate: Coordinate, function:String){
         var key:String = coordinate.key.toString()
@@ -297,14 +328,20 @@ class ApplicationViewModel : ViewModel() {
     fun registerUser(){
         currentUserData = User(emailNumber,firstName, lastName, birthDate, gender, address,"user")
     }
+    fun eraseUserData(){
+        currentUserData = User("","", "", "", "", "","")
 
-    fun Register(email: String, password: String) {
+    }
+
+    fun register(email: String, password: String) {
             auth.createUserWithEmailAndPassword(email,password)
                 .addOnCompleteListener()
                 { task ->
                     if (task.isSuccessful){
-                    }else{
-                        Log.d(TAG, "Create Account: ${email + password} Failed" + task.exception)
+                    }else if(task.isComplete){
+                        Log.d(TAG, "Create Account: ${email + password}" +
+                                "\n Failed  task exception " + task.exception
+                                + "\n task results ${task.result}")
                     }
         }
     }

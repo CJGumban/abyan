@@ -68,7 +68,6 @@ class  ConfirmUserDataFragment : Fragment() {
     }
 
     private fun writeNewUser() {
-        applicationViewModel.registerUser()
         val email = auth.currentUser?.email
         // Create new post at /user-posts/$userid/$postid and at
         // /posts/$postid simultaneously

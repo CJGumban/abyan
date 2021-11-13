@@ -1,4 +1,7 @@
 package com.example.abyan.ui
+
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
@@ -13,17 +16,30 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import com.example.abyan.R
 import com.example.abyan.databinding.FragmentLoginBinding
+import com.example.abyan.model.User
 import com.example.abyan.viewmodel.ApplicationViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.*
+import com.google.firebase.database.ktx.database
+import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
 
 class LoginFragment : Fragment() {
     var auth: FirebaseAuth = Firebase.auth
-    private val sharedViewModel : ApplicationViewModel by activityViewModels()
+    lateinit var sharedPreferences : SharedPreferences
+    lateinit var editor: SharedPreferences.Editor
+    /*   val mFirebaseDatabase: FirebaseDatabase = FirebaseDatabase.getInstance()*/
+    private val sharedViewModel: ApplicationViewModel by activityViewModels()
     private lateinit var binding: FragmentLoginBinding
     private var progressBar: ProgressBar? = null
 
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        /*  mFirebaseDatabase.setPersistenceEnabled(true)*/
+
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,9 +49,36 @@ class LoginFragment : Fragment() {
 
         return binding.root
 
+
     }
+    fun loadpref() {
+        sharedPreferences = activity?.getPreferences(Context.MODE_PRIVATE)!!
+        editor = sharedPreferences?.edit()!!
+        /*val sharedPref = activity?.getPreferences(Context.MODE_PRIVATE) ?: return
+        with(sharedPref.edit()) {
+            putString("Username", "sharedprefun")
+            putString("Password", "sharedPrefpw")
+            apply()
+        }*/
+
+ /*       editor?.putString("Username", "sharpened")
+        editor?.apply()
+        Log.d(TAG,"sharedpref ${activity?.getPreferences(Context.MODE_PRIVATE)?.all.toString()}")
+        Log.d(TAG,"sharedpref ${sharedPreferences?.all.toString()}")
+
+*/
+
+
+    }
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        loadpref()
+
+        updateUI()
+
+//       allowOffline()
         binding.apply {
             viewModel = sharedViewModel
             lifecycleOwner = viewLifecycleOwner
@@ -51,15 +94,13 @@ class LoginFragment : Fragment() {
 
 
         setProgressBar(R.id.progressBar)
-        if (sharedViewModel.auth.currentUser!=null){
+/*        if (sharedViewModel.auth.currentUser != null) {
             val action =
                 LoginFragmentDirections.actionLoginFragmentToHomeFragment()
             view.findNavController().navigate(action)
-
-
-        }
+        }*/
         binding.signupButton.setOnClickListener {
-            val action =    LoginFragmentDirections.actionLoginFragmentToCreateAccount1Fragment()
+            val action = LoginFragmentDirections.actionLoginFragmentToCreateAccount2Fragment()
             view.findNavController().navigate(action)
         }
 
@@ -70,23 +111,135 @@ class LoginFragment : Fragment() {
             login()
 
 
-
-
         }
     }
+
+    fun loadUserInfo() {
+        Log.d(TAG, "Load user info")
+
+        val userRef = Firebase.database.getReference("user").limitToFirst(1).orderByChild("email")
+            .equalTo(auth.currentUser?.email)
+        userRef.keepSynced(false)
+
+        /*userRef.get().addOnSuccessListener {
+            sharedViewModel.currentUserData = it.value as User
+            Log.d(TAG, "currentuserdata ${sharedViewModel.currentUserData}")
+        }.addOnFailureListener {
+            Toast.makeText(context, "${it.localizedMessage}", Toast.LENGTH_SHORT).show()
+        }*/
+
+        /*sharedViewModel.currentUserData = userRef.get().result.value as User
+        Log.d(TAG, "currentuserdata ${sharedViewModel.currentUserData}")*/
+
+
+
+        userRef.get().addOnSuccessListener {
+
+            Log.d(TAG, "user get: task success ${it.exists()}")
+
+            var currentUser: User? = it.getValue<User>()
+            it.children.forEach { child->
+                sharedViewModel.currentUserData = child.getValue<User>()!!
+            }
+            Log.d(TAG,"Current user ${currentUser?.toMap().toString()}")
+
+            editor?.apply {
+                this.putString("email", sharedViewModel.currentUserData.email)
+                this.putString("firstname",sharedViewModel.currentUserData.firstName)
+                this.putString("lastname",sharedViewModel.currentUserData.lastName)
+                this.putString("birthDate",sharedViewModel.currentUserData.birthDate)
+                this.putString("gender",sharedViewModel.currentUserData.gender)
+                this.putString("address",sharedViewModel.currentUserData.address)
+                this.putString("role",sharedViewModel.currentUserData.role)
+            }?.apply()
+
+
+
+//            sharedViewModel.currentUserData = it.value as User
+
+            Log.d(TAG, "loginFragment loadUserInfo sharedViewModel.currentUserData ${sharedViewModel.currentUserData}")
+
+            Log.d(TAG, "loginFragment loadUserInfo apppreference.all ${sharedPreferences?.all}")
+
+            Log.d(TAG, "user get: task success ${it.value}")
+        }.addOnFailureListener {
+            Log.d(TAG, "task failed ${it.localizedMessage}")
+        }
+
+        userRef.get().addOnCompleteListener { task ->
+ /*           if (task.isSuccessful) {
+                Log.d(TAG, "task success ${task.result.value}")
+            } else {
+                Log.d(TAG, "task failed ${task.exception?.localizedMessage}")
+            }*/
+        }
+
+     /*   userRef.addChildEventListener(object : ChildEventListener {
+            override fun onChildAdded(snapshot: DataSnapshot, previousChild: String?) {
+
+//                sharedViewModel.currentUserData = snapshot.value as User
+//                var ds: User? = snapshot.getValue<User>()
+//                Log.d(TAG, "ds value ${ds?.toMap().toString()}")
+
+//                sharedViewModel.currentUserData = userRef.get().result.value as User
+                Log.d(TAG, "currentuserdata ${sharedViewModel.currentUserData}")
+                Log.d(TAG, "snapshot count ${snapshot.childrenCount}")
+                Log.d(TAG, "snapshot value ${snapshot.value}")
+
+            }
+
+            // [START_EXCLUDE]
+            override fun onChildRemoved(dataSnapshot: DataSnapshot) = Unit
+
+            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) = Unit
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.d(TAG, "database error ${databaseError.message}")
+            }
+
+
+            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
+
+            }
+        })*/
+    }
+
+    fun allowOffline() {
+
+//        val userRef = Firebase.database.getReference("user").orderByKey()
+//            .equalTo("-Ml3A5hwbGQ76DkO7Xnn")
+//        userRef.keepSynced(true)
+//
+//        userRef.addChildEventListener(object : ChildEventListener {
+//            override fun onChildAdded(snapshot: DataSnapshot, previousChild: String?) {
+//
+//                Log.d(TAG, "snapshot count ${snapshot.childrenCount}")
+//                Log.d(TAG, "snapshot value ${snapshot.value}")
+//
+//            }
+//
+//            // [START_EXCLUDE]
+//            override fun onChildRemoved(dataSnapshot: DataSnapshot) = Unit
+//
+//            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) = Unit
+//
+//            override fun onCancelled(databaseError: DatabaseError) = Unit
+//
+//            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
+//
+//            }
+//        })
+
+    }
+
 
     override fun onStart() {
         super.onStart()
-        if (sharedViewModel.loggedIn()){
-            val action =
-                LoginFragmentDirections.actionLoginFragmentToHomeFragment()
-            view?.findNavController()?.navigate(action)
-        }
+
     }
 
 
-
-    fun login(){
+    fun login() {
         if (!validateForm()) {
             return
         }
@@ -94,34 +247,47 @@ class LoginFragment : Fragment() {
         var email = binding.textfieldUsername.editText?.text.toString()
         var password = binding.textfieldPassword.editText?.text.toString()
         auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener{
-                    task ->
+            .addOnCompleteListener { task ->
 
-                if(task.isSuccessful) {
+                if (task.isSuccessful) {
 
                     Log.d(TAG, "Login Fragment Sign In: Success")
                     updateUI()
-                } else {
-                    Log.d(TAG, "Login Fragment Sign In: Failed" , task.exception)
-                    Toast.makeText(requireContext(), "Account doesn't exist: ${task.exception}", Toast.LENGTH_SHORT).show()
 
-                    updateUI()
+
+                } else if (task.isCanceled) {
+                    Log.d(TAG, "Login Fragment Sign In: Failed", task.exception)
+                    Toast.makeText(
+                        requireContext(),
+                        "${task.exception?.localizedMessage}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                   /* updateUI()*/
                 }
+            }.addOnFailureListener {
+                Log.d(TAG, "Login Fragment Sign In: Failed ${it.localizedMessage}")
+                Toast.makeText(
+                    requireContext(),
+                    "${it?.localizedMessage}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
+
     }
 
     private fun updateUI() {
         hideProgressBar()
-        if (auth.currentUser!=null){
+        if (auth.currentUser != null) {
+            loadUserInfo()
             sharedViewModel.auth = auth
             val action = LoginFragmentDirections.actionLoginFragmentToHomeFragment()
             view?.findNavController()?.navigate(action)
-        }
-        else{
-           Toast.makeText(requireContext(), "Login Error", Toast.LENGTH_SHORT).show()
+
+        } else {
+
         }
     }
-
 
 
     private fun validateForm(): Boolean {
@@ -129,6 +295,7 @@ class LoginFragment : Fragment() {
         if (TextUtils.isEmpty(binding.textfieldUsername.editText?.text.toString())) {
             binding.textfieldUsername.error = "Required"
             result = false
+            hideProgressBar()
         } else {
             binding.textfieldUsername.error = null
         }
@@ -136,6 +303,7 @@ class LoginFragment : Fragment() {
         if (TextUtils.isEmpty(binding.textfieldPassword.editText?.text.toString())) {
             binding.textfieldPassword.error = "Required"
             result = false
+            hideProgressBar()
         } else {
             binding.textfieldPassword.error = null
         }
@@ -157,7 +325,8 @@ class LoginFragment : Fragment() {
     fun hideProgressBar() {
         progressBar?.visibility = View.INVISIBLE
     }
-    companion object{
+
+    companion object {
         const val TAG = "AppTesting"
     }
 
