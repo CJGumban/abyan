@@ -38,8 +38,11 @@ import java.lang.Exception
 import android.net.Uri
 
 import android.content.Intent
+import android.text.format.DateFormat
 import androidx.core.view.get
+import com.example.abyan.model.Coordinate
 import com.example.abyan.model.User
+import java.util.*
 import kotlin.reflect.jvm.internal.impl.descriptors.PackageFragmentProviderKt
 
 
@@ -150,9 +153,7 @@ class HomeFragment : Fragment() {
             true
         }
         var sendButtonCancelled = false
-        binding.sendLocationButton.setOnClickListener{
-            sendSMS()
-        }
+
         binding.sendLocationButton.setOnTouchListener(OnTouchListener
         { v, event ->
             sendButtonCancelled = false
@@ -386,7 +387,8 @@ class HomeFragment : Fragment() {
 
                         sharedViewModel.latitude = mCurrentLocation!!.latitude
                         sharedViewModel.longitude = mCurrentLocation!!.longitude
-                        sharedViewModel.sendLocation()
+                        /*sharedViewModel.sendLocationNow()*/
+                        sendLocationNow()
 
                     }
                     .show()
@@ -398,7 +400,98 @@ class HomeFragment : Fragment() {
             Log.d(TAG, "Current location is null. Using defaults.")
         }
     }
+    fun sendLocationNow() {
+        var userExist:Boolean = false
+        var currentCoordinateKey: String? = null
+        sharedViewModel.coordinatelist.forEach { coordinate ->
+            if (sharedViewModel.auth.currentUser?.email == coordinate.email ){
+                userExist = true
+                currentCoordinateKey = coordinate.key
+                Log.d(ApplicationViewModel.TAG, "sendLocationMethod: Current user exist")
+            }
+        }
+        if (userExist){
+            var tsLong = System.currentTimeMillis() / 1000
+            Log.d(ApplicationViewModel.TAG, " timestamp  $tsLong")
+            val cal = Calendar.getInstance(Locale.ENGLISH)
+            cal.timeInMillis = tsLong * 1000L
+            val date: String = DateFormat.format("MM-dd hh:mm", cal).toString()
+            Log.d(ApplicationViewModel.TAG,"time stamp to date: $date")
+            val userId = sharedViewModel.auth.currentUser?.uid.toString()
+            val email = sharedViewModel.auth.currentUser?.email
+            // Create new post at /user-posts/$userid/$postid and at
+            // /posts/$postid simultaneously
+            val key = database.push().key
+            if (key == null) {
+                Log.w(ApplicationViewModel.TAG, "Couldn't get push key for posts")
+                return
+            }
+            Log.w(ApplicationViewModel.TAG, "$key")
 
+
+            val coordinate = Coordinate(currentCoordinateKey, email, sharedViewModel.latitude, sharedViewModel.longitude,"need help", sharedViewModel.type, date)
+            val coordinateValues = coordinate.toMap()
+
+            val childUpdates = hashMapOf<String, Any>(
+                "coordinates/$currentCoordinateKey" to coordinateValues,
+                "active-coordinates/$currentCoordinateKey" to coordinateValues,
+
+
+                //coordinates gets record of all of the coordinates send
+                //active-coordinates records coordinates for each email if email gets new coordinate the older coordinates get overwritten
+                //"active-coordinates/@email" to coordinateValues,
+
+
+            )
+
+            database.updateChildren(childUpdates)
+                .addOnSuccessListener { Log.w(ApplicationViewModel.TAG,"it worked")}
+                .addOnFailureListener {
+                    Log.w(ApplicationViewModel.TAG, "failed")
+                    emergencyCall()
+                }
+
+        } else if(!userExist){
+            var tsLong = System.currentTimeMillis() / 1000
+            Log.d(ApplicationViewModel.TAG, " timestamp  $tsLong")
+            val cal = Calendar.getInstance(Locale.ENGLISH)
+            cal.timeInMillis = tsLong * 1000L
+            val date: String = DateFormat.format("MM-dd hh:mm", cal).toString()
+            Log.d(ApplicationViewModel.TAG,"time stamp to date: $date")
+
+            val email = sharedViewModel.auth.currentUser?.email
+            // Create new post at /user-posts/$userid/$postid and at
+            // /posts/$postid simultaneously
+            val key = database.push().key
+            if (key == null) {
+                Log.w(ApplicationViewModel.TAG, "Couldn't get push key for posts")
+                return
+            }
+            Log.w(ApplicationViewModel.TAG, "$key")
+
+
+            val coordinate = Coordinate(key, email, sharedViewModel.latitude, sharedViewModel.longitude,"need help", sharedViewModel.type, date)
+            val coordinateValues = coordinate.toMap()
+
+            val childUpdates = hashMapOf<String, Any>(
+                "coordinates/$key" to coordinateValues,
+                "active-coordinates/$key" to coordinateValues,
+
+
+                //coordinates gets record of all of the coordinates send
+                //active-coordinates records coordinates for each email if email gets new coordinate the older coordinates get overwritten
+                //"active-coordinates/@email" to coordinateValues,
+            )
+            database.updateChildren(childUpdates)
+                .addOnSuccessListener { Log.w(ApplicationViewModel.TAG,"it worked")}
+                .addOnFailureListener {
+                    Log.w(ApplicationViewModel.TAG, "failed")
+                    emergencyCall()
+                }
+        }
+
+
+    }
 
     private fun sendSMS() {
         fun composeMmsMessage(message: String, attachment: Uri) {
