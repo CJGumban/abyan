@@ -44,7 +44,8 @@ class CreateAccount2Fragment : Fragment() {
         }
 
         val today = MaterialDatePicker.todayInUtcMilliseconds()
-        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC+8"))
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        Log.d("timezone", "${calendar.timeZone.toString()}")
         calendar.timeInMillis = today
         val constraintsBuilder =
             CalendarConstraints.Builder()
@@ -56,6 +57,7 @@ class CreateAccount2Fragment : Fragment() {
                 .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
                 .setCalendarConstraints(constraintsBuilder.build())
                 .build()
+
         binding.textfieldBirthDate.editText?.showSoftInputOnFocus = false
         binding.textfieldBirthDate.editText?.setOnFocusChangeListener { view, b ->
             if (view.isFocused){
@@ -79,7 +81,17 @@ class CreateAccount2Fragment : Fragment() {
             var dateFormat: SimpleDateFormat = SimpleDateFormat("YYYY/MM/dd")
             var date: String = dateFormat.format(birthDate)
             Log.d("testingthis", "date  ${date}")
-            binding.textfieldBirthDate.editText?.setText(date)*/
+//            binding.textfieldBirthDate.editText?.setText(date)*/
+
+
+            try {
+                val sdf = SimpleDateFormat("MM/dd/yyyy")
+                val netDate = Date(datePicker.selection!!.toLong())
+                Log.d("testingthis","sdf ${sdf.format(netDate)}")
+            } catch (e: Exception) {
+                Log.d("testingthis","${e.toString()}")
+
+            }
 
             applicationViewModel.birthDate = it.toString()
             applicationViewModel.birthdateToString()

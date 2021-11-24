@@ -11,13 +11,13 @@
         android:orientation="vertical">
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/textview_post_title"
+            android:id="@+id/textview_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="16dp"
             android:paddingBottom="12dp"
             android:textAppearance="?attr/textAppearanceHeadline6"
-            android:text="Title"/>
+            android:text="date"/>
 
 
 

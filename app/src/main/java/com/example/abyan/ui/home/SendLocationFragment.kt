@@ -1,7 +1,9 @@
 package com.example.abyan.ui.home
 
 import android.Manifest
+import android.content.Context
 import android.content.IntentSender
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.location.Location
@@ -29,21 +31,23 @@ import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.Task
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.gson.GsonBuilder
 import com.google.maps.DirectionsApi
 import com.google.maps.GeoApiContext
 import com.google.maps.internal.PolylineEncoding
-import java.time.LocalDate
-import java.time.Period
 import java.util.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 
 import android.graphics.Canvas
 
 import android.graphics.drawable.VectorDrawable
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 
 import android.os.Build
+import androidx.activity.addCallback
 import androidx.appcompat.content.res.AppCompatResources.getDrawable
+import androidx.core.view.get
+import androidx.navigation.fragment.findNavController
 
 import com.google.android.gms.maps.model.BitmapDescriptor
 
@@ -60,6 +64,8 @@ class SendLocationFragment : Fragment() {
     private var locationPermissionGranted = true
     private var polyline: Polyline? = null
     private lateinit var coordinateKey: String
+    lateinit var sharedPreferences: SharedPreferences
+    lateinit var editor: SharedPreferences.Editor
 
 
 //    private var context: GeoApiContext? = null
@@ -190,7 +196,7 @@ class SendLocationFragment : Fragment() {
                         )
                         MaterialAlertDialogBuilder(requireContext())
                             .setTitle("Get Direction?")
-                            .setMessage("Get Directions to ${marker.title}")
+                            .setMessage("Get Directions to ${markerCoordinate.fullname}")
                             .setNeutralButton("Close") { dialog, which ->
                                 // Respond to neutral button press
                             }
@@ -286,7 +292,7 @@ class SendLocationFragment : Fragment() {
                         if (sharedViewModel.markerOnRoute.coordinate == null|| !sharedViewModel.markerOnRoute.isActive!!) {
                             MaterialAlertDialogBuilder(requireContext())
                                 .setTitle("Get Direction?")
-                                .setMessage("Get Directions to ${marker.title}")
+                                .setMessage("Get Directions to ${markerCoordinate.fullname}")
                                 .setNeutralButton("Close") { dialog, which ->
                                     // Respond to neutral button press
                                 }
@@ -328,7 +334,7 @@ class SendLocationFragment : Fragment() {
                                                 (marker.tag as Coordinate).status = "need help"
                                                 editMarker(marker.tag as Coordinate, marker)
 
-                                            }
+                                             }
                                             1 -> {
 
                                             }
@@ -372,20 +378,19 @@ class SendLocationFragment : Fragment() {
                         }
                     }
                     markerCoordinate.status?.equals("done")!! -> {
-//TODO("done logic")
-
-//                        MaterialAlertDialogBuilder(requireContext())
-//                            .setTitle("Get Direction?")
-//                            .setMessage("Get Directions to ${marker.title}")
-//                            .setNeutralButton("Close") { dialog, which ->
-//                                // Respond to neutral button press
-//                            }
-//                            .setPositiveButton("Accept") { dialog, which ->
-//
-//                            }.show()
-//
+                        if(sharedViewModel.currentUserData.role.equals("admin")){
+                        MaterialAlertDialogBuilder(requireContext())
+                            .setTitle("Delete Marker?")
+                            .setMessage("The marker was done. Do you want to delete it?")
+                            .setNegativeButton("Cancel") { dialog, which ->
+                                // Respond to neutral button press
+                            }
+                            .setPositiveButton("Delete") { dialog, which ->
+                                sharedViewModel.changeStatus(marker.tag as Coordinate, "delete")
+                                marker.remove()
+                            }.show()
+                        }
                     }
-
                 }
             } catch (e: java.lang.Exception) {
                 Log.e(TAG, "send location error: ${e.message}")
@@ -406,15 +411,8 @@ class SendLocationFragment : Fragment() {
             sharedViewModel.markerOnRoute.isActive = false
         }
     }
-    fun getAge(year: Int, month: Int, dayOfMonth: Int): Int {
-        return Period.between(
-            LocalDate.of(year, month, dayOfMonth),
-            LocalDate.now()
-        ).years
-    }
 
     fun refreshMapPin() {
-
         try {
             polyline = mMap.addPolyline(
                 PolylineOptions()
@@ -729,7 +727,6 @@ class SendLocationFragment : Fragment() {
         val context = GeoApiContext.Builder()
             .apiKey("AIzaSyAgOzM44kdRUKudckM8o_zerMri0kx-sQc")
             .build()
-        val gson = GsonBuilder().setPrettyPrinting().create()
         var result = DirectionsApi.newRequest(context).origin(
             com.google.maps.model.LatLng(
                 currentLocation?.latitude!!.toDouble(),
@@ -780,7 +777,6 @@ class SendLocationFragment : Fragment() {
         var context = GeoApiContext.Builder()
             .apiKey("AIzaSyAgOzM44kdRUKudckM8o_zerMri0kx-sQc")
             .build()
-        var gson = GsonBuilder().setPrettyPrinting().create()
         //sending coordinates
         var result = DirectionsApi.newRequest(context)
             .origin(com.google.maps.model.LatLng(11.580189, 122.755482))
@@ -789,7 +785,6 @@ class SendLocationFragment : Fragment() {
         val directionApi = DirectionsApi.newRequest(context)
 //            var direction = gson.toJson(result.routes[0].legs[0].steps[stepCount].polyline.encodedPath)
         var direction = (result.routes[0].overviewPolyline.encodedPath.toString())
-        var directionCount = gson.toJson(result.routes[0].legs[0].steps.size).toInt()
 
         Log.d(TAG, "Direction polyline:  $direction")
         var directToPoly: MutableList<com.google.maps.model.LatLng>? =
@@ -902,8 +897,12 @@ class SendLocationFragment : Fragment() {
         super.onCreate(savedInstanceState)
         arguments?.let {
             coordinateKey = it.getString(COORDINATEKEY).toString()
+        }
+        val callback = requireActivity().onBackPressedDispatcher.addCallback(this) {
+            // Handle the back button event
 
 
+            findNavController().navigateUp()
         }
     }
 
@@ -928,6 +927,8 @@ class SendLocationFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        loadpref()
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(activity)
         createLocationRequest()
         startLocationUpdates()
@@ -936,7 +937,12 @@ class SendLocationFragment : Fragment() {
         binding.buttonList.setOnClickListener{
             setCurrentFragment("list")
         }
-        binding.bottomNavigation.selectedItemId = R.id.map
+        binding.bottomNavigation.selectedItemId = binding.bottomNavigation.menu[2].itemId
+        Log.d(
+            TAG,"map fragment bottomnav selectedid ${binding.bottomNavigation.selectedItemId }" +
+                "\nhome id ${R.id.home}" +
+                "\nmap id ${R.id.map}" +
+                "\nnews id ${R.id.news}")
         binding.bottomNavigation.setOnNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.news -> setCurrentFragment("news")
@@ -967,6 +973,17 @@ class SendLocationFragment : Fragment() {
         }
         }
     }
+    fun loadpref() {
+        sharedPreferences = activity?.getPreferences(Context.MODE_PRIVATE)!!
+        editor = sharedPreferences.edit()!!
+    }
+    fun net(): Boolean {
+        val cm = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
+        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+        return isConnected
+    }
+
 }
 
 

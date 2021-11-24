@@ -44,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
-                android:text="@{viewModel.currentUserData.firstName + viewModel.currentUserData.lastName}" />
+                android:text="@{viewModel.getFullname}" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/textview_address"
@@ -53,7 +53,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
-                android:text="Dumulog, Roxas City"
+                android:text="@{viewModel.currentUserData.address}"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/textview_firstname" />
 
@@ -84,20 +84,10 @@
                 android:layout_height="2dp"
                 android:background="?attr/dividerHorizontal" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_setnumber"
-                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="left"
-                android:paddingLeft="12dp"
-                android:text="Emergency Contact"
-                android:textAllCaps="false"
-                app:icon="@drawable/ic_baseline_chevron_right_24"
 
-                app:iconGravity="end" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/button_responderAccess"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:checked="false"

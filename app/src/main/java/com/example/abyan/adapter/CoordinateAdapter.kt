@@ -21,7 +21,6 @@ class CoordinateAdapter(private val context: Context,
     class CoordinateViewHolder(val view: View) : RecyclerView.ViewHolder(view)  {
         val icon = view.findViewById<ImageView>(R.id.image_type)
         val fullname = view.findViewById<TextView>(R.id.textView_fullname)
-        val distance = view.findViewById<TextView>(R.id.textview_distance)
         val type = view.findViewById<TextView>(R.id.textview_type)
         val age = view.findViewById<TextView>(R.id.textview_age)
         val timeDate = view.findViewById<TextView>(R.id.textview_timedate)
@@ -36,11 +35,10 @@ class CoordinateAdapter(private val context: Context,
 
     override fun onBindViewHolder(holder: CoordinateViewHolder, position: Int) {
         val item = coordinate[position]
-        holder.fullname.text = item.email.toString()
-        holder.distance.text = "60.0 km"
+        holder.fullname.text = item.fullname.toString()
         holder.type.text = "${item.type}"
-        holder.age.text = "Age: 60"
-        holder.timeDate.text = "6:00 Aug 02, 2020"
+        holder.age.text = "Age: ${item.age.toString()}"
+        holder.timeDate.text = "${item.dateTime.toString()}"
         holder.icon.setImageResource(setMarker(item))
     holder.view.setOnClickListener {
         val action = MapListViewFragmentDirections.actionMapListViewFragmentToSendLocationFragment(item.key)

@@ -2,6 +2,7 @@ package com.example.abyan.ui.home
 
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.IntentSender
 import android.content.SharedPreferences
@@ -25,25 +26,28 @@ import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.Task
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.firebase.database.DatabaseReference
 import android.view.MotionEvent
 import android.view.View.OnTouchListener
 import androidx.core.content.ContextCompat
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import java.lang.Exception
 import android.net.Uri
 
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
+import android.text.TextUtils.replace
 import android.text.format.DateFormat
+import androidx.activity.addCallback
 import androidx.core.view.get
+import androidx.fragment.app.FragmentManager
+import androidx.navigation.NavController
+import androidx.navigation.fragment.findNavController
 import com.example.abyan.model.Coordinate
 import com.example.abyan.model.User
+import com.google.firebase.database.*
 import java.util.*
-import kotlin.reflect.jvm.internal.impl.descriptors.PackageFragmentProviderKt
 
 
 class HomeFragment : Fragment() {
@@ -59,6 +63,19 @@ class HomeFragment : Fragment() {
     private val sharedViewModel: ApplicationViewModel by activityViewModels()
     lateinit var database: DatabaseReference
     var isOnline: Boolean = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val callback = requireActivity().onBackPressedDispatcher.addCallback(this) {
+            // Handle the back button event
+            requireActivity().finish()
+
+        }
+
+        // The callback can be enabled or disabled here or in the lambda
+    }
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -128,8 +145,10 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+
         loadpref()
-        checkRoles()
+
         connectionListener()
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(activity)
         createLocationRequest()
@@ -137,12 +156,6 @@ class HomeFragment : Fragment() {
         enableMyLocation()
         database = sharedViewModel.database
         sharedViewModel.addPostEventListener(database.child("coordinates"))
-        //code for making bottomnav item visible
-//      binding.bottomNavigation.menu[0].isVisible = false
-        binding.bottomNavigation.selectedItemId = R.id.home
-//        binding.buttonProfile.setOnClickListener {
-//            setCurrentFragment("profile")
-//        }
         binding.topAppBar.setNavigationOnClickListener { setCurrentFragment("profile") }
         binding.bottomNavigation.setOnNavigationItemSelectedListener {
             when (it.itemId) {
@@ -153,7 +166,6 @@ class HomeFragment : Fragment() {
             true
         }
         var sendButtonCancelled = false
-
         binding.sendLocationButton.setOnTouchListener(OnTouchListener
         { v, event ->
             sendButtonCancelled = false
@@ -172,7 +184,7 @@ class HomeFragment : Fragment() {
                     }
 
                     override fun onFinish() {
-                        if (!isOnline){
+                        if (!net()){
                             emergencyCall()
                         } else {
                             sendDeviceDialog()
@@ -192,24 +204,31 @@ class HomeFragment : Fragment() {
             false
         })
 
-        binding.signoutButton.setOnClickListener {
+     /*   binding.signoutButton.setOnClickListener {
             sharedViewModel.auth.signOut()
             sharedViewModel.auth.addAuthStateListener {
                 try {
+                    logout()
                     Log.d(TAG, "${sharedViewModel.auth.currentUser}")
                     Log.d(TAG, "${sharedViewModel.auth.currentUser}")
                     if (sharedViewModel.auth.currentUser == null) {
                         setCurrentFragment("logout")
-                        logout()
+
 
                     }
                 } catch (e: Exception) {
                     Log.d(TAG, "Error ${e.message}")
                 }
             }
-        }
+        }*/
+        checkRoles()
     }
-
+    fun net(): Boolean {
+        val cm = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
+        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+        return isConnected
+    }
     private fun emergencyCall() {
 
 
@@ -228,8 +247,6 @@ class HomeFragment : Fragment() {
 
 
     }
-
-
     //create location request
     fun createLocationRequest() {
         locationRequest = LocationRequest.create().apply {
@@ -291,6 +308,7 @@ class HomeFragment : Fragment() {
                 val action =
                     HomeFragmentDirections.actionHomeFragmentToLoginFragment()
                 view?.findNavController()?.navigate(action)
+
             }
             "profile" -> {
                 val action =
@@ -361,7 +379,8 @@ class HomeFragment : Fragment() {
         Log.d(TAG, "Send location")
         Log.d(TAG, "locationpermissiongranted $locationPermissionGranted")
         Log.d(TAG, "currtentlocation not null ${mCurrentLocation != null}")
-
+        sharedViewModel.getFullname()
+        sharedViewModel.getAge2()
         if (locationPermissionGranted) {
 
             if (mCurrentLocation != null) {
@@ -417,7 +436,6 @@ class HomeFragment : Fragment() {
             cal.timeInMillis = tsLong * 1000L
             val date: String = DateFormat.format("MM-dd hh:mm", cal).toString()
             Log.d(ApplicationViewModel.TAG,"time stamp to date: $date")
-            val userId = sharedViewModel.auth.currentUser?.uid.toString()
             val email = sharedViewModel.auth.currentUser?.email
             // Create new post at /user-posts/$userid/$postid and at
             // /posts/$postid simultaneously
@@ -427,9 +445,18 @@ class HomeFragment : Fragment() {
                 return
             }
             Log.w(ApplicationViewModel.TAG, "$key")
-
-
-            val coordinate = Coordinate(currentCoordinateKey, email, sharedViewModel.latitude, sharedViewModel.longitude,"need help", sharedViewModel.type, date)
+            val coordinate = Coordinate(
+                key = currentCoordinateKey,
+                email = email,
+                fullname = sharedViewModel.getFullname,
+                lat = sharedViewModel.latitude,
+                lng = sharedViewModel.longitude,
+                gender = sharedViewModel.currentUserData.gender,
+                age = sharedViewModel.getAge,
+                status = "need help",
+                type = sharedViewModel.type,
+                dateTime = date
+            )
             val coordinateValues = coordinate.toMap()
 
             val childUpdates = hashMapOf<String, Any>(
@@ -450,6 +477,17 @@ class HomeFragment : Fragment() {
                     Log.w(ApplicationViewModel.TAG, "failed")
                     emergencyCall()
                 }
+                .addOnCompleteListener { task->
+                    if (task.isSuccessful) {
+                        Log.d(TAG, "finish task results ${task.result}")
+                        Log.d(TAG, "coordinatevalues ${coordinateValues.toString()}")
+                    }
+                    else {
+                        emergencyCall()
+                        Log.d(TAG, "task failed ${task.exception?.localizedMessage.toString()}")
+                    }
+                }
+
 
         } else if(!userExist){
             var tsLong = System.currentTimeMillis() / 1000
@@ -470,7 +508,19 @@ class HomeFragment : Fragment() {
             Log.w(ApplicationViewModel.TAG, "$key")
 
 
-            val coordinate = Coordinate(key, email, sharedViewModel.latitude, sharedViewModel.longitude,"need help", sharedViewModel.type, date)
+            val coordinate = Coordinate(
+                key = key,
+                email = email,
+                fullname = sharedViewModel.getFullname,
+                lat = sharedViewModel.latitude,
+                lng = sharedViewModel.longitude,
+                gender = sharedViewModel.currentUserData.gender,
+                age = sharedViewModel.getAge,
+                status = "need help",
+                type = sharedViewModel.type,
+                dateTime = date
+            )
+
             val coordinateValues = coordinate.toMap()
 
             val childUpdates = hashMapOf<String, Any>(
@@ -488,29 +538,21 @@ class HomeFragment : Fragment() {
                     Log.w(ApplicationViewModel.TAG, "failed")
                     emergencyCall()
                 }
+                .addOnCompleteListener { task->
+                    if (task.isSuccessful) {
+                        Log.d(TAG, "finish task results ${task.result}")
+                        Log.d(TAG, "coordinatevalues ${coordinateValues.toString()}")
+
+                    }
+                    else {
+                        emergencyCall()
+                        Log.d(TAG, "task failed ${task.exception?.localizedMessage.toString()}")
+                    }
+                }
         }
 
 
     }
-
-    private fun sendSMS() {
-        fun composeMmsMessage(message: String, attachment: Uri) {
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                data = Uri.parse("smsto:")  // This ensures only SMS apps respond
-                putExtra("sms_body", message)
-                putExtra(Intent.EXTRA_STREAM, attachment)
-            }
-
-            var packageManager = activity?.packageManager
-            if (intent.resolveActivity(packageManager!!) != null) {
-                startActivity(intent)
-                Log.d(TAG,"sms")
-            }
-            startActivity(intent)
-        }
-        Log.d(TAG,"sms")
-    }
-
 
     private fun sendDeviceDialog() {
         var timeLeft = 5
@@ -573,6 +615,18 @@ class HomeFragment : Fragment() {
         })
     }
     fun checkRoles(){
+        if(binding.bottomNavigation.selectedItemId != R.id.home){
+
+            binding.bottomNavigation.selectedItemId = binding.bottomNavigation.menu[1].itemId
+        }
+        binding.bottomNavigation.menu[1].isChecked = true
+        binding.bottomNavigation.selectedItemId = R.id.home
+        Log.d(TAG,"home fragment bottomnav selectedid ${binding.bottomNavigation.selectedItemId }" +
+                "\nhome id ${R.id.home}" +
+                "\nmap id ${R.id.map}" +
+                "\nnews id ${R.id.news}")
+
+
         Log.d(TAG,"checkRoles ${sharedViewModel.currentUserData.role.toString()}")
         if (!sharedViewModel.currentUserData.role.equals("user")){
             binding.bottomNavigation.menu[2].isVisible
@@ -599,6 +653,7 @@ class HomeFragment : Fragment() {
 
 
     }
+
 
 
 

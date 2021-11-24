@@ -32,7 +32,7 @@ class PostMessageFragment : Fragment() {
         arguments?.let {
             editKey = it.getString(PostMessageFragment.EDITKEY).toString()
             applicationViewModel.postList.forEach {post->
-                if (post.key==editKey){
+                if (post.key ==editKey){
                     postToEdit = post
                 }
             }
@@ -54,7 +54,6 @@ class PostMessageFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (postToEdit!=null){
-            binding.edittextTitle.setText(postToEdit?.title.toString())
             binding.edittextBody.setText(postToEdit?.body.toString())
         }
         binding.topAppBar.setNavigationOnClickListener {
@@ -75,14 +74,13 @@ class PostMessageFragment : Fragment() {
     }
 
     private fun post() {
-        var title = binding.edittextTitle.text.toString()
         var body = binding.edittextBody.text.toString()
         if (postToEdit!=null){
-            applicationViewModel.editPost(post = postToEdit!!,title, body)
+            applicationViewModel.editPost(post = postToEdit!!, body = body)
             postToEdit = null
             editKey = null.toString()
         }else {
-            applicationViewModel.writePost(title, body)
+            applicationViewModel.writePost(body)
         }
     }
 

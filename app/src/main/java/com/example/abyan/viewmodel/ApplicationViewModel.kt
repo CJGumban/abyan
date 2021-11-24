@@ -1,11 +1,7 @@
 package com.example.abyan.viewmodel
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.text.format.DateFormat
 import android.util.Log
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.abyan.model.Coordinate
 import com.example.abyan.model.MarkerOnRoute
@@ -14,14 +10,14 @@ import com.example.abyan.model.User
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
-import java.security.Timestamp
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.Period
 import java.util.*
 import java.util.Locale
 import kotlin.collections.ArrayList
@@ -36,7 +32,7 @@ class ApplicationViewModel : ViewModel() {
     lateinit var coordinatesRef: DatabaseReference
     lateinit var coordinatesListener: ValueEventListener
     var currentUserData = User()
-
+    var userToEdit = User()
 
     var birthdateToString:String = ""
     var emailNumber:String? = ""
@@ -44,7 +40,7 @@ class ApplicationViewModel : ViewModel() {
     var password:String? = null
     var firstName: String? = null
     var lastName: String? = null
-    var birthDate: String? = null
+    var birthDate: String? = ""
     var gender: String? = null
     var address: String? = null
     var longitude: Double? = null
@@ -79,21 +75,36 @@ class ApplicationViewModel : ViewModel() {
 
         }
 
+    // TODO: 16/11/2021 {wrong date}
     fun birthdateToString(){
-        if (birthDate.isNullOrEmpty()){
+        if (birthDate.equals("")){
 
-        }else if (!birthDate.isNullOrEmpty()){
-            var timestamp: Long? = currentUserData?.birthDate?.toLong()
+        }else if (!birthDate.equals("")){
+            var timestamp: Long? = birthDate?.toLong()
+            var date: Date = Date(timestamp?.toLong()!!)
+            var dateFormat: SimpleDateFormat = SimpleDateFormat("YYYY/MM/dd")
+            birthdateToString  = dateFormat.format(date)
+            Log.d("testingthis","${timestamp}")
+
+            Log.d(TAG,"birth ${birthdateToString.toString()}")}
+    }
+    fun editBirthdateToString(){
+
+            var timestamp: Long? = userToEdit?.birthDate?.toLong()
             var date: Date = Date(timestamp?.toLong()!!)
             var dateFormat: SimpleDateFormat = SimpleDateFormat("YYYY/MM/dd")
             birthdateToString  = dateFormat.format(date)
             Log.d(TAG,"birth ${birthdateToString.toString()}")}
 
 
+
+    fun userToEdit(){
+        userToEdit = currentUserData
     }
-
-
-
+    var getFullname: String = ""
+    fun getFullname() {
+        getFullname = "${currentUserData.firstName.toString()} ${currentUserData.lastName}"
+    }
     fun getLocationsListener() {
         // [START basic_listen]
         // Get a reference to Messages and attach a listener
@@ -117,11 +128,14 @@ class ApplicationViewModel : ViewModel() {
                     coordinatelist.add(Coordinate(
                         coordinate?.key,
                         coordinate?.email,
-                        coordinate?.lat,
-                        coordinate?.lng,
-                        coordinate?.status,
-                        coordinate?.type,
-                        coordinate?.dateTime,
+                        fullname = coordinate?.fullname,
+                        gender = coordinate?.gender,
+                        age = coordinate?.age,
+                        lat = coordinate?.lat,
+                        lng = coordinate?.lng,
+                        status = coordinate?.status,
+                        type = coordinate?.type,
+                        dateTime = coordinate?.dateTime,
                     ))
                 }
             }
@@ -197,7 +211,15 @@ class ApplicationViewModel : ViewModel() {
             Log.w(TAG, "$key")
 
 
-            val coordinate = Coordinate(currentCoordinateKey, email, latitude, longitude,"need help", type, date)
+            val coordinate = Coordinate(
+                currentCoordinateKey,
+                email,
+                lat = latitude,
+                lng = longitude,
+                status = "need help",
+                type = type,
+                dateTime = date
+            )
             val coordinateValues = coordinate.toMap()
 
             val childUpdates = hashMapOf<String, Any>(
@@ -238,7 +260,15 @@ class ApplicationViewModel : ViewModel() {
             Log.w(TAG, "$key")
 
 
-            val coordinate = Coordinate(key, email, latitude, longitude,"need help", type, date)
+            val coordinate = Coordinate(
+                key,
+                email,
+                lat = latitude,
+                lng = longitude,
+                status = "need help",
+                type = type,
+                dateTime = date
+            )
             val coordinateValues = coordinate.toMap()
 
             val childUpdates = hashMapOf<String, Any>(
@@ -333,6 +363,7 @@ class ApplicationViewModel : ViewModel() {
 
     }
 
+
     fun register(email: String, password: String) {
             auth.createUserWithEmailAndPassword(email,password)
                 .addOnCompleteListener()
@@ -379,11 +410,16 @@ class ApplicationViewModel : ViewModel() {
             .addOnFailureListener {
                 Log.d(TAG,"Change status: Delete failure")
             }
+        postList.forEach {
+            post ->
+            if (post.key==key){
+                postList.remove(post)
+            }
+        }
 
 
     }
-    fun editPost(post: Post, title: String = "",body: String = "") {
-        post.title = title
+    fun editPost(post: Post,body: String = "") {
         post.body = body
         val postValues = post.toMap()
         val childUpdates = hashMapOf<String, Any>(
@@ -398,7 +434,7 @@ class ApplicationViewModel : ViewModel() {
 
 
 
-     fun writePost(title: String = "",body: String = "") {
+     fun writePost(body: String = "") {
 
 
         var tsLong = System.currentTimeMillis() / 1000
@@ -418,7 +454,7 @@ class ApplicationViewModel : ViewModel() {
         }
         Log.w(TAG, "$key")
 
-        val message = Post(userId,key,email,title, body, date)
+        val message = Post(key, body, date)
 
 
         val messageValues = message.toMap()
@@ -429,11 +465,14 @@ class ApplicationViewModel : ViewModel() {
 
             )
 
+
         database.updateChildren(childUpdates)
             .addOnSuccessListener { Log.w(TAG,"it worked")}
             .addOnFailureListener {
                 Log.w(TAG, Exception())
             }
+
+
 
     }
 
@@ -472,16 +511,29 @@ class ApplicationViewModel : ViewModel() {
         }
     }
 
-
-
-
-    fun loggedIn():Boolean{
-        return currentUser != null
+    fun getAge(): String? {
+        var timestamp: Long? = userToEdit?.birthDate?.toLong()
+        var date: Date = Date(timestamp?.toLong()!!)
+        var year: Int = SimpleDateFormat("YYYY").format(date).toInt()
+        var month: Int = SimpleDateFormat("MM").format(date).toInt()
+        var dayOfMonth: Int = SimpleDateFormat("dd").format(date).toInt()
+        return Period.between(
+            LocalDate.of(year, month, dayOfMonth),
+            LocalDate.now()
+        ).years.toString()
     }
-
-
-
-
+    var getAge:String = ""
+    fun getAge2() {
+        var timestamp: Long? = currentUserData?.birthDate?.toLong()
+        var date: Date = Date(timestamp?.toLong()!!)
+        var year: Int = SimpleDateFormat("YYYY").format(date).toInt()
+        var month: Int = SimpleDateFormat("MM").format(date).toInt()
+        var dayOfMonth: Int = SimpleDateFormat("dd").format(date).toInt()
+        getAge = Period.between(
+            LocalDate.of(year, month, dayOfMonth),
+            LocalDate.now()
+        ).years.toString()
+    }
 
 
 }

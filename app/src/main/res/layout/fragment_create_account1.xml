@@ -15,7 +15,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:layout_gravity="center"
-        tools:context="ui.CreateAccount1Fragment">
+        tools:context="ui.CreateAccount1Fragment    ">
 
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/progressBar"

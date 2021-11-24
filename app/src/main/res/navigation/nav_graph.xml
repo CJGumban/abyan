@@ -12,13 +12,13 @@
         tools:layout="@layout/fragment_login">
         <action
             android:id="@+id/action_loginFragment_to_homeFragment"
-            app:destination="@id/homeFragment" />
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_loginFragment_to_createAccount2Fragment"
             app:destination="@id/createAccount2Fragment" />
-        <action
-            android:id="@+id/action_loginFragment_to_settingsFragment"
-            app:destination="@id/settingsFragment" />
+
     </fragment>
     <fragment
         android:id="@+id/createAccount1Fragment"
@@ -27,7 +27,9 @@
         tools:layout="@layout/fragment_create_account1">
         <action
             android:id="@+id/action_createAccount1Fragment_to_homeFragment"
-            app:destination="@id/homeFragment" />
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/createAccount2Fragment"
@@ -50,10 +52,14 @@
         tools:layout="@layout/fragment_send_location">
         <action
             android:id="@+id/action_sendLocationFragment_to_newsUpdateFragment"
-            app:destination="@id/newsUpdateFragment" />
+            app:destination="@id/newsUpdateFragment"
+            app:popUpTo="@id/newsUpdateFragment"
+            app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_sendLocationFragment_to_homeFragment"
-            app:destination="@id/homeFragment" />
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_sendLocationFragment_to_mapListViewFragment"
             app:destination="@id/mapListViewFragment" />
@@ -70,13 +76,18 @@
         tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_homeFragment_to_newsUpdateFragment"
-            app:destination="@id/newsUpdateFragment" />
+            app:destination="@id/newsUpdateFragment"
+            app:popUpTo="@id/newsUpdateFragment"
+            app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_homeFragment_to_sendLocationFragment"
-            app:destination="@id/sendLocationFragment" />
+            app:destination="@id/sendLocationFragment"
+            app:popUpToInclusive="false" />
         <action
             android:id="@+id/action_homeFragment_to_profileFragment"
-            app:destination="@id/profileFragment" />
+            app:destination="@id/profileFragment"
+            app:popUpTo="@id/profileFragment"
+            app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_homeFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
@@ -88,10 +99,14 @@
         tools:layout="@layout/fragment_news_update" >
         <action
             android:id="@+id/action_newsUpdateFragment_to_homeFragment"
-            app:destination="@id/homeFragment" />
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_newsUpdateFragment_to_sendLocationFragment"
-            app:destination="@id/sendLocationFragment" />
+            app:destination="@id/sendLocationFragment"
+            app:popUpTo="@id/sendLocationFragment"
+            app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_newsUpdateFragment_to_postMessageFragment"
             app:destination="@id/postMessageFragment" />
@@ -112,7 +127,9 @@
         tools:layout="@layout/fragment_post_message" >
         <action
             android:id="@+id/action_postMessageFragment_to_newsUpdateFragment"
-            app:destination="@id/newsUpdateFragment" />
+            app:destination="@id/newsUpdateFragment"
+            app:popUpTo="@id/newsUpdateFragment"
+            app:popUpToInclusive="true" />
         <argument
             android:name="editKey"
             app:argType="string"
@@ -132,9 +149,29 @@
         android:id="@+id/profileFragment"
         android:name="com.example.abyan.ui.home.ProfileFragment"
         android:label="fragment_profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile" >
+        <action
+            android:id="@+id/action_profileFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_profileFragment_to_loginFragment"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/profileFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_profileFragment_to_editProfileFragment"
+            app:destination="@id/editProfileFragment" />
+    </fragment>
+
     <fragment
-        android:id="@+id/settingsFragment"
-        android:name="com.example.abyan.SettingsFragment"
-        android:label="SettingsFragment" />
+        android:id="@+id/editProfileFragment"
+        android:name="com.example.abyan.ui.home.EditProfileFragment"
+        android:label="fragment_edit_profile"
+        tools:layout="@layout/fragment_edit_profile" >
+        <action
+            android:id="@+id/action_editProfileFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
+    </fragment>
 </navigation>
