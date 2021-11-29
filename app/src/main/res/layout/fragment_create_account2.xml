@@ -10,30 +10,45 @@
 
 
     </data>
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+
+
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         tools:context="ui.CreateAccount2Fragment"
+        android:background="@drawable/home"
         >
+
+        <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/topAppBar"
+                style="@style/Widget.MaterialComponents.Toolbar.Primary"
+                android:layout_width="match_parent"
+                android:background="#FBB8AC"
+                android:layout_height="?attr/actionBarSize"
+                app:navigationIcon="@drawable/ic_baseline_message_back_24"
+                app:title="Create an Account" />
+
+
+
 
         <com.google.android.material.textfield.TextInputLayout
 
             android:id="@+id/textfield_firstname"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="160dp"
             android:layout_marginHorizontal="60dp"
-            android:hint="first name"
+            app:boxStrokeColor="#D9FF1744"
+            app:hintTextColor="@color/black"
+            android:hint="First name"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:text="@{viewModel.firstName.toString()}"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="50dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -42,14 +57,16 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:layout_marginHorizontal="60dp"
-            android:hint="last name"
+            app:boxStrokeColor="#D9FF1744"
+            app:hintTextColor="@color/black"
+            android:hint="Last name"
 
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:text="@{viewModel.lastName}"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="50dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
 
@@ -60,14 +77,16 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="60dp"
             android:layout_marginTop="15dp"
-            android:hint="birth date"
+            app:boxStrokeColor="#D9FF1744"
+            app:hintTextColor="@color/black"
+            android:hint="Birth date"
             android:textIsSelectable="true"
             >
 
             <com.google.android.material.textfield.TextInputEditText
                 android:text="@{viewModel.birthdateToString.toString()}"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                  />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -77,13 +96,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:layout_marginHorizontal="60dp"
-            android:hint="gender"
+            app:boxStrokeColor="#D9FF1744"
+            app:hintTextColor="@color/black"
+            android:hint="Gender"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:text="@{viewModel.gender}"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="50dp" />
         </com.google.android.material.textfield.TextInputLayout>
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textfield_address"
@@ -91,13 +112,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:layout_marginHorizontal="60dp"
-            android:hint="address"
+            app:boxStrokeColor="#D9FF1744"
+            app:hintTextColor="@color/black"
+            android:hint="Address"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:text="@{viewModel.address}"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="50dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
@@ -106,9 +129,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="15dp"
+            android:backgroundTint="#D9FF1744"
             android:text="Next" />
 
 
     </LinearLayout>
-    </ScrollView>
+
 </layout>

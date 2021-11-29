@@ -1,6 +1,7 @@
 package com.example.abyan.ui
 
 import android.os.Bundle
+import android.text.TextUtils
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -9,6 +10,7 @@ import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import com.example.abyan.databinding.FragmentCreateAccount2Binding
 import com.example.abyan.viewmodel.ApplicationViewModel
 import com.google.android.material.datepicker.*
@@ -35,16 +37,41 @@ class CreateAccount2Fragment : Fragment() {
             viewModel = applicationViewModel
             lifecycleOwner = viewLifecycleOwner
         }
-        binding.ConfirmButton.setOnClickListener{
-            val action =
-                CreateAccount2FragmentDirections.actionCreateAccount2FragmentToCreateAccount1Fragment()
-            view.findNavController().navigate(action)
-            Log.d("testingthis", applicationViewModel.firstName.toString())
+        binding.apply {
+            textfieldFirstname.editText?.doOnTextChanged { text, start, before, count ->
+                applicationViewModel.firstName = binding.textfieldFirstname.editText?.text.toString()
 
+            }
+            textfieldLastname.editText?.doOnTextChanged { text, start, before, count ->
+                applicationViewModel.lastName = binding.textfieldLastname.editText?.text.toString()
+
+            }
+            textfieldGender.editText?.doOnTextChanged { text, start, before, count ->
+                applicationViewModel.gender = binding.textfieldGender.editText?.text.toString()
+
+            }
+            textfieldAddress.editText?.doOnTextChanged { text, start, before, count ->
+                applicationViewModel.address = binding.textfieldAddress.editText?.text.toString()
+
+            }
+        }
+        binding.ConfirmButton.setOnClickListener{
+            if (validateForm()){
+                val action =
+                    CreateAccount2FragmentDirections.actionCreateAccount2FragmentToCreateAccount1Fragment()
+                view.findNavController().navigate(action)
+            }
+
+
+
+        }
+        binding.topAppBar.setNavigationOnClickListener {
+            findNavController().navigateUp()
         }
 
         val today = MaterialDatePicker.todayInUtcMilliseconds()
-        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC+8"))
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        Log.d("timezone", "${calendar.timeZone.toString()}")
         calendar.timeInMillis = today
         val constraintsBuilder =
             CalendarConstraints.Builder()
@@ -56,6 +83,7 @@ class CreateAccount2Fragment : Fragment() {
                 .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
                 .setCalendarConstraints(constraintsBuilder.build())
                 .build()
+
         binding.textfieldBirthDate.editText?.showSoftInputOnFocus = false
         binding.textfieldBirthDate.editText?.setOnFocusChangeListener { view, b ->
             if (view.isFocused){
@@ -79,7 +107,17 @@ class CreateAccount2Fragment : Fragment() {
             var dateFormat: SimpleDateFormat = SimpleDateFormat("YYYY/MM/dd")
             var date: String = dateFormat.format(birthDate)
             Log.d("testingthis", "date  ${date}")
-            binding.textfieldBirthDate.editText?.setText(date)*/
+//            binding.textfieldBirthDate.editText?.setText(date)*/
+
+
+            try {
+                val sdf = SimpleDateFormat("MM/dd/yyyy")
+                val netDate = Date(datePicker.selection!!.toLong())
+                Log.d("testingthis","sdf ${sdf.format(netDate)}")
+            } catch (e: Exception) {
+                Log.d("testingthis","${e.toString()}")
+
+            }
 
             applicationViewModel.birthDate = it.toString()
             applicationViewModel.birthdateToString()
@@ -90,13 +128,43 @@ class CreateAccount2Fragment : Fragment() {
     }
 
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        applicationViewModel.firstName = binding.textfieldFirstname.editText?.text.toString()
-        applicationViewModel.lastName = binding.textfieldLastname.editText?.text.toString()
-        applicationViewModel.birthdateToString()
-        applicationViewModel.gender = binding.textfieldGender.editText?.text.toString()
-        applicationViewModel.address = binding.textfieldAddress.editText?.text.toString()
+
+
+        private fun validateForm(): Boolean {
+            var result = true
+            if (TextUtils.isEmpty(binding.textfieldFirstname.editText?.text.toString())) {
+                binding.textfieldFirstname.error = "Required"
+                result = false
+            } else {
+                binding.textfieldFirstname.error = null
+            }
+            if (TextUtils.isEmpty(binding.textfieldLastname.editText?.text.toString())) {
+                binding.textfieldLastname.error = "Required"
+                result = false
+            } else {
+                binding.textfieldFirstname.error = null
+            }
+            if (TextUtils.isEmpty(binding.textfieldAddress.editText?.text.toString())) {
+                binding.textfieldAddress.error = "Required"
+                result = false
+            } else {
+                binding.textfieldAddress.error = null
+            }
+            if (TextUtils.isEmpty(binding.textfieldBirthDate.editText?.text.toString())) {
+                binding.textfieldBirthDate.error = "Required"
+                result = false
+            } else {
+                binding.textfieldBirthDate.error = null
+            }
+            if (TextUtils.isEmpty(binding.textfieldGender.editText?.text.toString())) {
+                binding.textfieldGender.error = "Required"
+                result = false
+            } else {
+                binding.textfieldGender.error = null
+            }
+
+
+        return result
     }
 
 }

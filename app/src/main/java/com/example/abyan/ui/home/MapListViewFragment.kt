@@ -1,5 +1,7 @@
 package com.example.abyan.ui.home
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -22,7 +24,8 @@ class MapListViewFragment : Fragment() {
     private val applicationViewModel: ApplicationViewModel by activityViewModels()
     private lateinit var recyclerView: RecyclerView
     var coordinateList: MutableList<Coordinate> = ArrayList()
-
+    lateinit var sharedPreferences: SharedPreferences
+    lateinit var editor: SharedPreferences.Editor
 
 
 
@@ -37,7 +40,7 @@ class MapListViewFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Log.d("Apptesting", " mapListView coordinateList: ${coordinateList}")
-
+        loadpref()
         coordinateList.clear()
         applicationViewModel.coordinatelist.forEach { coordinate ->
             if (coordinate.status == "need help"){
@@ -103,4 +106,8 @@ class MapListViewFragment : Fragment() {
 
     }
 
+    fun loadpref() {
+        sharedPreferences = activity?.getPreferences(Context.MODE_PRIVATE)!!
+        editor = sharedPreferences.edit()!!
+    }
 }

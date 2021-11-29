@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import com.example.abyan.R
 import com.example.abyan.databinding.FragmentCreateAccount1Binding
 import com.example.abyan.viewmodel.ApplicationViewModel
@@ -30,9 +31,8 @@ class CreateAccount1Fragment : Fragment() {
     var auth: FirebaseAuth = Firebase.auth
     private var progressBar: ProgressBar? = null
     var database: DatabaseReference = Firebase.database.reference
-    private val appPreference: SharedPreferences? = activity?.getPreferences(
-        Context.MODE_PRIVATE)
-    private val editor = appPreference?.edit()
+    lateinit var sharedPreferences : SharedPreferences
+    lateinit var editor: SharedPreferences.Editor
 
 
 
@@ -53,6 +53,7 @@ class CreateAccount1Fragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        loadpref()
         binding.apply {
             viewModel = applicationViewModel
             lifecycleOwner = viewLifecycleOwner
@@ -64,6 +65,9 @@ class CreateAccount1Fragment : Fragment() {
             }
             textfieldConfirmpassword.editText?.doOnTextChanged { text, start, before, count ->
                 applicationViewModel.confirmPassword = text.toString()
+            }
+            topAppBar.setNavigationOnClickListener {
+                findNavController().navigateUp()
             }
         }
         binding.ConfirmButton.setOnClickListener {
@@ -85,9 +89,7 @@ class CreateAccount1Fragment : Fragment() {
                 .addOnCompleteListener()
                 { task ->
                     if (task.isSuccessful){
-                        val action = CreateAccount1FragmentDirections.actionCreateAccount1FragmentToHomeFragment()
-                        view?.findNavController()?.navigate(action)
-                        hideProgressBar()
+
                         writeNewUser()
                     }
                 }
@@ -117,15 +119,11 @@ class CreateAccount1Fragment : Fragment() {
         applicationViewModel.registerUser()
         val user = applicationViewModel.currentUserData
         val userValues = user.toMap()
-
         val childUpdates = hashMapOf<String, Any>(
             "/user/$key" to userValues,
-
             )
-
         database.updateChildren(childUpdates)
             .addOnSuccessListener {
-                Log.w(ApplicationViewModel.TAG,"it worked")
                 editor?.apply() {
                     this.putString("email", user.email)
                     this.putString("firstname",user.firstName)
@@ -133,16 +131,22 @@ class CreateAccount1Fragment : Fragment() {
                     this.putString("birthDate",user.birthDate)
                     this.putString("gender",user.gender)
                     this.putString("address",user.address)
-                    this.putString("address",user.role)
-                }?.commit()
+                    this.putString("role",user.role)
+                }?.apply()
+                Toast.makeText(context, "Account Created", Toast.LENGTH_SHORT).show()
+                hideProgressBar()
                 updateUI()
 
             }
             .addOnFailureListener {
                 Log.w(ApplicationViewModel.TAG, Exception())
+                Toast.makeText(context, it.localizedMessage, Toast.LENGTH_SHORT).show()
+
             }
 
     }
+
+
 
     private fun updateUI() {
         if (auth.currentUser!=null){
@@ -181,7 +185,6 @@ class CreateAccount1Fragment : Fragment() {
             }
         }
         return result
-
     }
     fun setProgressBar(resId: Int) {
         progressBar = view?.findViewById(resId)
@@ -193,6 +196,10 @@ class CreateAccount1Fragment : Fragment() {
 
     fun hideProgressBar() {
         progressBar?.visibility = View.INVISIBLE
+    }
+    fun loadpref() {
+        sharedPreferences = activity?.getPreferences(Context.MODE_PRIVATE)!!
+        editor = sharedPreferences?.edit()!!
     }
 
 }

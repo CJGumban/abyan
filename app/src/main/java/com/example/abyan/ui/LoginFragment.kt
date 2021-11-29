@@ -2,6 +2,8 @@ package com.example.abyan.ui
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
@@ -10,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -24,6 +27,11 @@ import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.Default
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlin.String as String
 
 class LoginFragment : Fragment() {
     var auth: FirebaseAuth = Firebase.auth
@@ -35,9 +43,16 @@ class LoginFragment : Fragment() {
     private var progressBar: ProgressBar? = null
 
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         /*  mFirebaseDatabase.setPersistenceEnabled(true)*/
+        val callback = requireActivity().onBackPressedDispatcher.addCallback(this) {
+            // Handle the back button event
+            requireActivity().finish()
+
+        }
+        sharedViewModel.resetData()
 
     }
 
@@ -70,13 +85,17 @@ class LoginFragment : Fragment() {
 
 
     }
-
+    fun net(): Boolean {
+        val cm = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
+        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+        return isConnected
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        sharedViewModel.resetData()
         loadpref()
-
-        updateUI()
 
 //       allowOffline()
         binding.apply {
@@ -100,6 +119,7 @@ class LoginFragment : Fragment() {
             view.findNavController().navigate(action)
         }*/
         binding.signupButton.setOnClickListener {
+            sharedViewModel.birthDate=""
             val action = LoginFragmentDirections.actionLoginFragmentToCreateAccount2Fragment()
             view.findNavController().navigate(action)
         }
@@ -114,7 +134,7 @@ class LoginFragment : Fragment() {
         }
     }
 
-    fun loadUserInfo() {
+     fun loadUserInfo(){
         Log.d(TAG, "Load user info")
 
         val userRef = Firebase.database.getReference("user").limitToFirst(1).orderByChild("email")
@@ -140,8 +160,11 @@ class LoginFragment : Fragment() {
             var currentUser: User? = it.getValue<User>()
             it.children.forEach { child->
                 sharedViewModel.currentUserData = child.getValue<User>()!!
+
             }
             Log.d(TAG,"Current user ${currentUser?.toMap().toString()}")
+            Log.d(TAG,"shareviewmodel.currentuserdata ${sharedViewModel.currentUserData.toMap().toString()}")
+
 
             editor?.apply {
                 this.putString("email", sharedViewModel.currentUserData.email)
@@ -162,9 +185,11 @@ class LoginFragment : Fragment() {
             Log.d(TAG, "loginFragment loadUserInfo apppreference.all ${sharedPreferences?.all}")
 
             Log.d(TAG, "user get: task success ${it.value}")
+            updateUI()
         }.addOnFailureListener {
             Log.d(TAG, "task failed ${it.localizedMessage}")
         }
+
 
         userRef.get().addOnCompleteListener { task ->
  /*           if (task.isSuccessful) {
@@ -202,6 +227,9 @@ class LoginFragment : Fragment() {
 
             }
         })*/
+
+
+
     }
 
     fun allowOffline() {
@@ -235,7 +263,9 @@ class LoginFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
-
+        CoroutineScope(Default).launch{
+            updateUI()
+        }
     }
 
 
@@ -248,11 +278,14 @@ class LoginFragment : Fragment() {
         var password = binding.textfieldPassword.editText?.text.toString()
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
-
+                hideProgressBar()
                 if (task.isSuccessful) {
 
                     Log.d(TAG, "Login Fragment Sign In: Success")
-                    updateUI()
+
+                        loadUserInfo()
+
+
 
 
                 } else if (task.isCanceled) {
@@ -266,6 +299,7 @@ class LoginFragment : Fragment() {
                    /* updateUI()*/
                 }
             }.addOnFailureListener {
+                hideProgressBar()
                 Log.d(TAG, "Login Fragment Sign In: Failed ${it.localizedMessage}")
                 Toast.makeText(
                     requireContext(),
@@ -277,17 +311,23 @@ class LoginFragment : Fragment() {
     }
 
     private fun updateUI() {
-        hideProgressBar()
-        if (auth.currentUser != null) {
-            loadUserInfo()
-            sharedViewModel.auth = auth
-            val action = LoginFragmentDirections.actionLoginFragmentToHomeFragment()
-            view?.findNavController()?.navigate(action)
 
-        } else {
+            hideProgressBar()
+            try{
+                if (auth.currentUser != null) {
+
+                    sharedViewModel.auth = auth
+                    val action = LoginFragmentDirections.actionLoginFragmentToHomeFragment()
+                    view?.findNavController()?.navigate(action)
+
+                } else {
+
+                }
+            }catch (e: Exception){}
+
 
         }
-    }
+
 
 
     private fun validateForm(): Boolean {
@@ -313,6 +353,7 @@ class LoginFragment : Fragment() {
 
     val uid: String
         get() = Firebase.auth.currentUser!!.uid
+
 
     fun setProgressBar(resId: Int) {
         progressBar = view?.findViewById(resId)

@@ -1,14 +1,15 @@
 package com.example.abyan.model
 
-import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.database.Exclude
 import com.google.firebase.database.IgnoreExtraProperties
-import java.security.Timestamp
 
 @IgnoreExtraProperties
 class Coordinate(
     val key: String? = null,
     val email: String? = null,
+    val fullname: String? = null,
+    val age: String? = null,
+    val gender: String? = null,
     val lat: Double? = null,
     val lng: Double? = null,
     var status: String? = null,
@@ -20,6 +21,9 @@ class Coordinate(
         return mapOf(
             "key" to key,
             "email" to email,
+            "fullname" to fullname,
+            "gender" to gender,
+            "age" to age,
             "lat" to lat,
             "lng" to lng,
             "status" to status,

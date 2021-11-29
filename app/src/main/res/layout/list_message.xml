@@ -8,16 +8,18 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="#FBB8AC">
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/textview_post_title"
+            android:id="@+id/textview_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="@color/white"
             android:padding="16dp"
             android:paddingBottom="12dp"
             android:textAppearance="?attr/textAppearanceHeadline6"
-            android:text="Title"/>
+            android:text="Date"/>
 
 
 
@@ -27,7 +29,7 @@
             android:layout_height="wrap_content"
             android:padding="16dp"
             android:textAppearance="?attr/textAppearanceListItem"
-            android:text="body"/>
+            android:text="Body"/>
 
     </LinearLayout>
 
