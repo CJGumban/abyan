@@ -18,14 +18,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 
 class ChangeRolesDialog: DialogFragment() {
-
-
-    private val sharedViewModel: ApplicationViewModel by activityViewModels()
-
-
-
-
-    override fun onCreateView(
+ override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -47,10 +40,7 @@ class ChangeRolesDialog: DialogFragment() {
             if(view.findViewById<TextInputLayout>(R.id.textInput_pin).editText?.text.toString().equals("1234")){
 
 //
-//                    //Easiest way: just set the value.
-//                    MainFragment fragment = (MainFragment) getActivity().getFragmentManager().findFragmentByTag("MainFragment");
-//                    fragment.mInputDisplay.setText(input);
-                val action = ChangeRolesDialogDirections.actionChangeRolesDialogToProfileFragment(true)
+               val action = ChangeRolesDialogDirections.actionChangeRolesDialogToProfileFragment(true)
                 NavHostFragment.findNavController(this).navigate(action)
             }
         }

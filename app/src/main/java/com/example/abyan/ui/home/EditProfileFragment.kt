@@ -36,22 +36,15 @@ import java.util.*
 
 class EditProfileFragment : Fragment() {
     var auth: FirebaseAuth = Firebase.auth
-    lateinit var sharedPreferences : SharedPreferences
+    lateinit var sharedPreferences: SharedPreferences
     lateinit var editor: SharedPreferences.Editor
     private val sharedViewModel: ApplicationViewModel by activityViewModels()
     private lateinit var binding: FragmentEditProfileBinding
     private var progressBar: ProgressBar? = null
     var database: DatabaseReference = Firebase.database.reference
-
-
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-    }companion object{
+    companion object {
         const val TAG = "AppTesting"
     }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -59,7 +52,8 @@ class EditProfileFragment : Fragment() {
         // Inflate the layout for this fragment
         binding = FragmentEditProfileBinding.inflate(inflater, container, false)
 
-        return binding.root    }
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -88,7 +82,7 @@ class EditProfileFragment : Fragment() {
 
             }
             topAppBar.setNavigationOnClickListener {
-                view?.findNavController()?.navigateUp()
+                view.findNavController().navigateUp()
             }
 
         }
@@ -108,11 +102,10 @@ class EditProfileFragment : Fragment() {
                 .build()
         binding.textfieldBirthDate.editText?.showSoftInputOnFocus = false
         binding.textfieldBirthDate.editText?.setOnFocusChangeListener { view, b ->
-            if (view.isFocused){
+            if (view.isFocused) {
                 Log.d("testingthis", " ${view.isFocused}")
-                datePicker.show(requireFragmentManager(),"TAG")
-            }
-            else {
+                datePicker.show(requireFragmentManager(), "TAG")
+            } else {
                 Log.d("testingthis", " ${view.isFocused}")
             }
             true
@@ -133,35 +126,36 @@ class EditProfileFragment : Fragment() {
         val userRef = Firebase.database.getReference("user").limitToFirst(1).orderByChild("email")
             .equalTo(auth.currentUser?.email)
         userRef.keepSynced(false)
-        var getkey =userRef.get().addOnSuccessListener {
+        var getkey = userRef.get().addOnSuccessListener {
             Log.d(LoginFragment.TAG, "user get: task success ${it.exists()}")
             var currentUser: User? = it.getValue<User>()
-            it.children.forEach { child->
+            it.children.forEach { child ->
                 key = child.key
             }
             val user = sharedViewModel.userToEdit
             val userValues = user.toMap()
             val childUpdates = hashMapOf<String, Any>(
                 "/user/$key" to userValues,
-                )
+            )
             database.updateChildren(childUpdates)
                 .addOnSuccessListener {
                     sharedViewModel.currentUserData = user
                     editor?.apply {
                         this.putString("email", sharedViewModel.currentUserData.email)
-                        this.putString("firstname",sharedViewModel.currentUserData.firstName)
-                        this.putString("lastname",sharedViewModel.currentUserData.lastName)
-                        this.putString("birthDate",sharedViewModel.currentUserData.birthDate)
-                        this.putString("gender",sharedViewModel.currentUserData.gender)
-                        this.putString("address",sharedViewModel.currentUserData.address)
-                        this.putString("role",sharedViewModel.currentUserData.role)
-                    }?.apply()
+                        this.putString("firstname", sharedViewModel.currentUserData.firstName)
+                        this.putString("lastname", sharedViewModel.currentUserData.lastName)
+                        this.putString("birthDate", sharedViewModel.currentUserData.birthDate)
+                        this.putString("gender", sharedViewModel.currentUserData.gender)
+                        this.putString("address", sharedViewModel.currentUserData.address)
+                        this.putString("role", sharedViewModel.currentUserData.role)
+                    }.apply()
                     Toast.makeText(context, "Profile Saved", Toast.LENGTH_SHORT).show()
                     view?.findNavController()?.navigateUp()
                     hideProgressBar()
                 }
                 .addOnFailureListener {
-                    Toast.makeText(context, it.localizedMessage.toString(), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, it.localizedMessage.toString(), Toast.LENGTH_SHORT)
+                        .show()
                     hideProgressBar()
                 }
         }.addOnFailureListener {
@@ -173,9 +167,8 @@ class EditProfileFragment : Fragment() {
         }
 
 
-
-
     }
+
     fun loadpref() {
         sharedPreferences = activity?.getPreferences(Context.MODE_PRIVATE)!!
         editor = sharedPreferences.edit()!!

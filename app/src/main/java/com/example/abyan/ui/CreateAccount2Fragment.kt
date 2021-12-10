@@ -71,7 +71,7 @@ class CreateAccount2Fragment : Fragment() {
 
         val today = MaterialDatePicker.todayInUtcMilliseconds()
         val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-        Log.d("timezone", "${calendar.timeZone.toString()}")
+        Log.d("timezone", "${calendar.timeZone}")
         calendar.timeInMillis = today
         val constraintsBuilder =
             CalendarConstraints.Builder()
@@ -115,7 +115,7 @@ class CreateAccount2Fragment : Fragment() {
                 val netDate = Date(datePicker.selection!!.toLong())
                 Log.d("testingthis","sdf ${sdf.format(netDate)}")
             } catch (e: Exception) {
-                Log.d("testingthis","${e.toString()}")
+                Log.d("testingthis","$e")
 
             }
 

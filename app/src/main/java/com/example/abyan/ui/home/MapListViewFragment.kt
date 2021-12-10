@@ -28,14 +28,13 @@ class MapListViewFragment : Fragment() {
     lateinit var editor: SharedPreferences.Editor
 
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         binding = FragmentMapListViewBinding.inflate(inflater, container, false)
-        return binding.root    }
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -43,7 +42,7 @@ class MapListViewFragment : Fragment() {
         loadpref()
         coordinateList.clear()
         applicationViewModel.coordinatelist.forEach { coordinate ->
-            if (coordinate.status == "need help"){
+            if (coordinate.status == "need help") {
                 coordinateList.add(coordinate)
             }
         }
@@ -54,38 +53,40 @@ class MapListViewFragment : Fragment() {
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
 
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                Log.d("Apptesting","tab selected ${ tab?.position}")
+                Log.d("Apptesting", "tab selected ${tab?.position}")
 
-                when(tab?.position){
-                    0->{
+                when (tab?.position) {
+                    0 -> {
                         coordinateList.clear()
                         applicationViewModel.coordinatelist.forEach { coordinate ->
-                        if (coordinate.status == "need help"){
-                            coordinateList.add(coordinate)
+                            if (coordinate.status == "need help") {
+                                coordinateList.add(coordinate)
+                            }
                         }
-                    }}
-                    1->{
+                    }
+                    1 -> {
                         coordinateList.clear()
                         applicationViewModel.coordinatelist.forEach { coordinate ->
-                        if (coordinate.status == "ongoing"){
-                            coordinateList.add(coordinate)
+                            if (coordinate.status == "ongoing") {
+                                coordinateList.add(coordinate)
+                            }
                         }
-                    }}
-                    2->{
+                    }
+                    2 -> {
                         coordinateList.clear()
                         applicationViewModel.coordinatelist.forEach { coordinate ->
-                        if (coordinate.status == "done"){
-                            coordinateList.add(coordinate)
+                            if (coordinate.status == "done") {
+                                coordinateList.add(coordinate)
+                            }
                         }
-                    }}
-                    
+                    }
+
                 }
 
                 recyclerView = binding.recyclerView
                 recyclerView.layoutManager = LinearLayoutManager(requireContext())
                 recyclerView.adapter = CoordinateAdapter(requireContext(), coordinateList)
             }
-
             override fun onTabReselected(tab: TabLayout.Tab?) {
                 // Handle tab reselect
             }
@@ -95,17 +96,10 @@ class MapListViewFragment : Fragment() {
             }
         })
 
-
         binding.topAppBar.setNavigationOnClickListener {
-            val action = MapListViewFragmentDirections.actionMapListViewFragmentToSendLocationFragment()
-            view.findNavController().navigate(action)
+            view.findNavController()?.navigateUp()
         }
-
-
-
-
     }
-
     fun loadpref() {
         sharedPreferences = activity?.getPreferences(Context.MODE_PRIVATE)!!
         editor = sharedPreferences.edit()!!

@@ -52,9 +52,6 @@ class PostMessageFragment : Fragment() {
 
         }
     }
-
-
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -71,7 +68,7 @@ class PostMessageFragment : Fragment() {
             binding.edittextBody.setText(postToEdit?.body.toString())
         }
         binding.topAppBar.setNavigationOnClickListener {
-            view?.findNavController()?.navigateUp()
+            view.findNavController().navigateUp()
         }
         binding.topAppBar.menu[0].setOnMenuItemClickListener { item->
             run {
@@ -79,11 +76,9 @@ class PostMessageFragment : Fragment() {
                     binding.progressBar.show()
                 } else {
                     Toast.makeText(context, "Client Offline", Toast.LENGTH_SHORT).show()}
-
             }
             true
         }
-
     }
 
     private fun post() {

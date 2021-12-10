@@ -35,11 +35,10 @@ class NewsUpdateFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var deleteKey: String
     var isOnline: Boolean = false
+
     companion object {
         val DELETEKEY = "deleteKey"
         private const val TAG = "AppTesting"
-
-
     }
 
     override fun onStart() {
@@ -47,21 +46,21 @@ class NewsUpdateFragment : Fragment() {
         binding.bottomNavigation.selectedItemId = R.id.news
 
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
             deleteKey = it.getString(DELETEKEY).toString()
         }
         val callback = requireActivity().onBackPressedDispatcher.addCallback(this) {
-            // Handle the back button event
             view?.findNavController()?.navigateUp()
         }
     }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         binding = FragmentNewsUpdateBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -70,40 +69,49 @@ class NewsUpdateFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         connectionListener()
         database = sharedViewModel.database
-        if (!deleteKey.equals("null")){
+        if (!deleteKey.equals("null")) {
             Log.d("appTesting", "delete key function success: $deleteKey")
             var c = MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Delete Post?")
                 .setNegativeButton("Cancel") { dialog, which ->
 
-                }.setPositiveButton("Confirm"){ dialog, which ->
-                    if (isOnline){deletePost(deleteKey)
-                    }else{
-                        Toast.makeText(context, "Client Offline", Toast.LENGTH_SHORT).show()}
-
+                }.setPositiveButton("Confirm") { dialog, which ->
+                    if (isOnline) {
+                        deletePost(deleteKey)
+                    } else {
+                        Toast.makeText(context, "Client Offline", Toast.LENGTH_SHORT).show()
+                    }
                 }.show()
 
             recyclerView = binding.recyclerView
             recyclerView.layoutManager = LinearLayoutManager(requireContext())
-            recyclerView.adapter = PostAdapter(requireContext(), sharedViewModel.postList,sharedViewModel.currentUserData.role.toString())
-        }
-    else {
+            recyclerView.adapter = PostAdapter(
+                requireContext(),
+                sharedViewModel.postList,
+                sharedViewModel.currentUserData.role.toString()
+            )
+        } else {
             recyclerView = binding.recyclerView
             recyclerView.layoutManager = LinearLayoutManager(requireContext())
-            recyclerView.adapter = PostAdapter(requireContext(), sharedViewModel.postList,sharedViewModel.currentUserData.role.toString())
+            recyclerView.adapter = PostAdapter(
+                requireContext(),
+                sharedViewModel.postList,
+                sharedViewModel.currentUserData.role.toString()
+            )
         }
         binding.floatingActionButton.setOnClickListener { setCurrentFragment("send message") }
         Log.d(
-            TAG,"news fragment bottomnav selectedid ${binding.bottomNavigation.selectedItemId }" +
-                "\nhome id ${R.id.home}" +
-                "\nmap id ${R.id.map}" +
-                "\nnews id ${R.id.news}")
+            TAG, "news fragment bottomnav selectedid ${binding.bottomNavigation.selectedItemId}" +
+                    "\nhome id ${R.id.home}" +
+                    "\nmap id ${R.id.map}" +
+                    "\nnews id ${R.id.news}"
+        )
         view.findViewById<BottomNavigationView>(R.id.bottom_navigation).selectedItemId = R.id.news
         binding.bottomNavigation.setOnNavigationItemSelectedListener {
-            when(it.itemId){
-                R.id.news->setCurrentFragment("news")
-                R.id.home->setCurrentFragment("home")
-                R.id.map->setCurrentFragment("map")
+            when (it.itemId) {
+                R.id.news -> setCurrentFragment("news")
+                R.id.home -> setCurrentFragment("home")
+                R.id.map -> setCurrentFragment("map")
             }
             true
         }
@@ -111,34 +119,35 @@ class NewsUpdateFragment : Fragment() {
     }
 
 
-        fun setCurrentFragment(itemId: String) {
-           try {
+    fun setCurrentFragment(itemId: String) {
+        try {
 
-               when (itemId) {
-                   "home" -> {
-                       val action =
-                           NewsUpdateFragmentDirections.actionNewsUpdateFragmentToHomeFragment()
-                       view?.findNavController()?.navigate(action)
-                   }
-                   "map" -> {
-                       val action =
-                           NewsUpdateFragmentDirections.actionNewsUpdateFragmentToSendLocationFragment()
-                       view?.findNavController()?.navigate(action)
-                   }
+            when (itemId) {
+                "home" -> {
+                    val action =
+                        NewsUpdateFragmentDirections.actionNewsUpdateFragmentToHomeFragment()
+                    view?.findNavController()?.navigate(action)
+                }
+                "map" -> {
+                    val action =
+                        NewsUpdateFragmentDirections.actionNewsUpdateFragmentToSendLocationFragment()
+                    view?.findNavController()?.navigate(action)
+                }
 
-                   "send message" -> {
-                       val action =
-                           NewsUpdateFragmentDirections.actionNewsUpdateFragmentToPostMessageFragment()
-                       view?.findNavController()?.navigate(action)
-                   }
-               }
-           }catch (e: Exception){Log.e("AppTesting", "${e.message}")}
+                "send message" -> {
+                    val action =
+                        NewsUpdateFragmentDirections.actionNewsUpdateFragmentToPostMessageFragment()
+                    view?.findNavController()?.navigate(action)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("AppTesting", "${e.message}")
         }
+    }
 
 
-
-    fun checkRoles(){
-        Log.d(TAG,"checkRoles ${sharedViewModel.currentUserData.role.toString()}")
+    fun checkRoles() {
+        Log.d(TAG, "checkRoles ${sharedViewModel.currentUserData.role.toString()}")
         when {
             sharedViewModel.currentUserData.role.equals("responder") -> {
                 binding.bottomNavigation.menu[2].isVisible
@@ -154,22 +163,26 @@ class NewsUpdateFragment : Fragment() {
         }
     }
 
-    fun deletePost(key:String) {
+    fun deletePost(key: String) {
         database.child("post").child("$key").removeValue()
             .addOnSuccessListener {
-                sharedViewModel.postList.forEach {
-                        post ->
-                    if (post.key==key){
+                sharedViewModel.postList.forEach { post ->
+                    if (post.key == key) {
                         sharedViewModel.postList.remove(post)
                     }
                 }
-                try{recyclerView = binding.recyclerView
+                try {
+                    recyclerView = binding.recyclerView
                     recyclerView.layoutManager = LinearLayoutManager(context)
-                    recyclerView.adapter = PostAdapter(requireContext(), sharedViewModel.postList,sharedViewModel.currentUserData.role.toString())
-                }catch (e: java.lang.Exception){
-                    Log.d(TAG,e.localizedMessage.toString())
+                    recyclerView.adapter = PostAdapter(
+                        requireContext(),
+                        sharedViewModel.postList,
+                        sharedViewModel.currentUserData.role.toString()
+                    )
+                } catch (e: java.lang.Exception) {
+                    Log.d(TAG, e.localizedMessage.toString())
                 }
-}
+            }
             .addOnFailureListener {
                 Toast.makeText(context, it.localizedMessage, Toast.LENGTH_SHORT).show()
             }

@@ -188,7 +188,7 @@ class SendLocationFragment : Fragment() {
         //put logic or menus depending on the status of the marker
         mMap.setOnInfoWindowClickListener { marker ->
             var markerCoordinate: Coordinate = marker.tag as Coordinate
-            Log.d(TAG, "Coordinate key: ${markerCoordinate.toMap().toString()}")
+            Log.d(TAG, "Coordinate key: ${markerCoordinate.toMap()}")
 
 
             try {
@@ -197,7 +197,7 @@ class SendLocationFragment : Fragment() {
                     markerCoordinate.status?.equals("need help")!! -> {
                         Log.d(
                             TAG,
-                            "marker on route ${sharedViewModel.markerOnRoute.toMap().toString()}"
+                            "marker on route ${sharedViewModel.markerOnRoute.toMap()}"
                         )
                         MaterialAlertDialogBuilder(requireContext())
                             .setTitle("Get Direction?")
@@ -208,7 +208,7 @@ class SendLocationFragment : Fragment() {
                             .setPositiveButton("Accept") { dialog, which ->
                                 //code if create route accepted
 
-                                    if (!sharedViewModel.markerOnRoute?.isActive!!||sharedViewModel.markerOnRoute.marker==null) {
+                                    if (!sharedViewModel.markerOnRoute.isActive!!||sharedViewModel.markerOnRoute.marker==null) {
                                         //to this if there's no active route
                                             //this code activate route and get marker's coordinate
                                         sharedViewModel.activateRoute(marker)
@@ -218,15 +218,15 @@ class SendLocationFragment : Fragment() {
                                         editMarker(marker)
                                         object : CountDownTimer(500000, 5000) {
                                             override fun onTick(millisUntilFinished: Long) {
-                                                if (sharedViewModel.markerOnRoute?.isActive!!) {
+                                                if (sharedViewModel.markerOnRoute.isActive!!) {
                                                     showDirection(
                                                         mCurrentLocation!!,
                                                         LatLng(
-                                                            sharedViewModel.markerOnRoute?.coordinate?.lat!!,
-                                                            sharedViewModel.markerOnRoute?.coordinate?.lng!!
+                                                            sharedViewModel.markerOnRoute.coordinate?.lat!!,
+                                                            sharedViewModel.markerOnRoute.coordinate?.lng!!
                                                         )
                                                     )
-                                                } else if (!sharedViewModel.markerOnRoute?.isActive!!) {
+                                                } else if (!sharedViewModel.markerOnRoute.isActive!!) {
                                                     cancel()
                                                 }
                                             }
@@ -235,10 +235,10 @@ class SendLocationFragment : Fragment() {
                                             }
 
                                         }.start()
-                                    } else if (sharedViewModel.markerOnRoute?.isActive!!) {
+                                    } else if (sharedViewModel.markerOnRoute.isActive!!) {
                                        if (sharedViewModel.markerOnRoute.coordinate!=null){
                                             //coordinate exist
-                                            if (sharedViewModel.markerOnRoute?.coordinate?.key != markerCoordinate.key) {
+                                            if (sharedViewModel.markerOnRoute.coordinate?.key != markerCoordinate.key) {
                                                 //coordinate.key not equal on active markerkey
                                                 MaterialAlertDialogBuilder(
                                                     requireContext()
@@ -249,17 +249,19 @@ class SendLocationFragment : Fragment() {
                                                         // Respond to neutral button press
                                                     }
                                                     .setPositiveButton("Proceed") { dialog, which ->
-                                                        sharedViewModel.changeStatus(sharedViewModel.markerOnRoute?.coordinate!!, "need help")
-                                                        (sharedViewModel.markerOnRoute?.coordinate as Coordinate).status = "need help"
-                                                        editMarker(sharedViewModel.markerOnRoute?.coordinate!!,sharedViewModel.markerOnRoute?.marker!!)
+                                                        sharedViewModel.changeStatus(sharedViewModel.markerOnRoute.coordinate!!, "need help")
+                                                        (sharedViewModel.markerOnRoute.coordinate as Coordinate).status = "need help"
+                                                        editMarker(
+                                                            sharedViewModel.markerOnRoute.coordinate!!,
+                                                            sharedViewModel.markerOnRoute.marker!!)
                                                         sharedViewModel.activateRoute(marker)
                                                         (marker.tag as Coordinate).status = "ongoing"
                                                         editMarker(marker)
                                                         showDirection(
                                                             mCurrentLocation!!,
                                                             LatLng(
-                                                                sharedViewModel.markerOnRoute?.coordinate?.lat!!,
-                                                                sharedViewModel.markerOnRoute?.coordinate?.lng!!
+                                                                sharedViewModel.markerOnRoute.coordinate?.lat!!,
+                                                                sharedViewModel.markerOnRoute.coordinate?.lng!!
                                                             )
                                                         )
 //                                                   TODO("cancel previous marker route" +
@@ -269,7 +271,7 @@ class SendLocationFragment : Fragment() {
 
                                                     }.show()
                                             }
-                                            else if (sharedViewModel.markerOnRoute?.coordinate?.key == markerCoordinate.key) {
+                                            else if (sharedViewModel.markerOnRoute.coordinate?.key == markerCoordinate.key) {
                                                 MaterialAlertDialogBuilder(
                                                     requireContext()
                                                 )
@@ -308,15 +310,15 @@ class SendLocationFragment : Fragment() {
                                     editMarker(marker)
                                     object : CountDownTimer(500000, 5000) {
                                         override fun onTick(millisUntilFinished: Long) {
-                                            if (sharedViewModel.markerOnRoute?.isActive == true) {
+                                            if (sharedViewModel.markerOnRoute.isActive == true) {
                                                 showDirection(
                                                     mCurrentLocation!!,
                                                     LatLng(
-                                                        sharedViewModel.markerOnRoute?.coordinate?.lat!!,
-                                                        sharedViewModel.markerOnRoute?.coordinate?.lng!!
+                                                        sharedViewModel.markerOnRoute.coordinate?.lat!!,
+                                                        sharedViewModel.markerOnRoute.coordinate?.lng!!
                                                     )
                                                 )
-                                            } else if (sharedViewModel.markerOnRoute?.isActive == false) {
+                                            } else if (sharedViewModel.markerOnRoute.isActive == false) {
                                                 cancel()
                                             }
                                         }
@@ -364,9 +366,11 @@ class SendLocationFragment : Fragment() {
                                     }
                                     .setPositiveButton("Proceed") { dialog, which ->
 
-                                        sharedViewModel.changeStatus(sharedViewModel.markerOnRoute?.coordinate!!, "need help")
-                                        (sharedViewModel.markerOnRoute?.coordinate as Coordinate).status = "need help"
-                                        editMarker(sharedViewModel.markerOnRoute?.coordinate!!,sharedViewModel.markerOnRoute?.marker!!)
+                                        sharedViewModel.changeStatus(sharedViewModel.markerOnRoute.coordinate!!, "need help")
+                                        (sharedViewModel.markerOnRoute.coordinate as Coordinate).status = "need help"
+                                        editMarker(
+                                            sharedViewModel.markerOnRoute.coordinate!!,
+                                            sharedViewModel.markerOnRoute.marker!!)
                                         sharedViewModel.activateRoute(marker)
                                         (marker.tag as Coordinate).status = "ongoing"
                                         editMarker(marker)
@@ -374,8 +378,8 @@ class SendLocationFragment : Fragment() {
                                         showDirection(
                                             mCurrentLocation!!,
                                             LatLng(
-                                                sharedViewModel.markerOnRoute?.coordinate?.lat!!,
-                                                sharedViewModel.markerOnRoute?.coordinate?.lng!!
+                                                sharedViewModel.markerOnRoute.coordinate?.lat!!,
+                                                sharedViewModel.markerOnRoute.coordinate?.lng!!
                                             )
                                         )
                                     }.show()
@@ -537,8 +541,8 @@ class SendLocationFragment : Fragment() {
         var pin: Int = pin_null_red
 
 
-        var type = coordinate?.type
-        var status = coordinate?.status
+        var type = coordinate.type
+        var status = coordinate.status
         when (type) {
             "ambulance" -> {
                 when (status) {
@@ -627,8 +631,8 @@ class SendLocationFragment : Fragment() {
         var pin: Int = pin_null_red
 
 
-        var type = coordinate?.type
-        var status = coordinate?.status
+        var type = coordinate.type
+        var status = coordinate.status
         when (type) {
             "ambulance" -> {
                 when (status) {
@@ -738,8 +742,8 @@ class SendLocationFragment : Fragment() {
                 .build()
             var result = DirectionsApi.newRequest(context).origin(
                 com.google.maps.model.LatLng(
-                    currentLocation?.latitude!!.toDouble(),
-                    currentLocation?.longitude!!.toDouble()
+                    currentLocation.latitude.toDouble(),
+                    currentLocation.longitude.toDouble()
                 )
             ).destination(com.google.maps.model.LatLng(position.latitude, position.longitude))
                 .await()

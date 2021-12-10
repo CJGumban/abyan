@@ -50,9 +50,6 @@ class ProfileFragment : Fragment(){
     companion object {
         private const val TAG = "AppTesting"
     }
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -91,7 +88,7 @@ class ProfileFragment : Fragment(){
                             if (sharedViewModel.auth.currentUser == null) {
                                 val action =
                                     ProfileFragmentDirections.actionProfileFragmentToLoginFragment()
-                                view?.findNavController()?.navigate(action)
+                                view.findNavController().navigate(action)
 
 
                             }
@@ -111,7 +108,7 @@ class ProfileFragment : Fragment(){
             sharedViewModel.editBirthdateToString()
             val action =
                 ProfileFragmentDirections.actionProfileFragmentToEditProfileFragment()
-            view?.findNavController()?.navigate(action)
+            view.findNavController().navigate(action)
         }
         connectionListener()
         loadpref()
@@ -119,7 +116,7 @@ class ProfileFragment : Fragment(){
         binding.topAppBar.setNavigationOnClickListener {
             val action =
                 ProfileFragmentDirections.actionProfileFragmentToHomeFragment()
-            view?.findNavController()?.navigate(action)
+            view.findNavController().navigate(action)
         }
         Log.d(TAG,"is online ${isOnline()}")
 
@@ -191,7 +188,7 @@ class ProfileFragment : Fragment(){
     fun loadpref() {
         sharedPreferences = activity?.getPreferences(Context.MODE_PRIVATE)!!
         editor = sharedPreferences.edit()!!
-        Log.d(TAG,"sharedpref ${sharedPreferences.all.toString()}")
+        Log.d(TAG,"sharedpref ${sharedPreferences.all}")
         sharedViewModel.currentUserData = User(
             sharedPreferences.getString("email",""),
             sharedPreferences.getString("firstname",""),
@@ -201,7 +198,7 @@ class ProfileFragment : Fragment(){
             sharedPreferences.getString("address",""),
             sharedPreferences.getString("role",""),
         )
-        Log.d(TAG,"sharedvm ${sharedViewModel.currentUserData.toString()}")
+        Log.d(TAG,"sharedvm ${sharedViewModel.currentUserData}")
     }
 
     fun updateUserData() {
@@ -235,7 +232,7 @@ class ProfileFragment : Fragment(){
                         this.putString("gender",sharedViewModel.currentUserData.gender)
                         this.putString("address",sharedViewModel.currentUserData.address)
                         this.putString("role",sharedViewModel.currentUserData.role)
-                    }?.apply()
+                    }.apply()
                     try {
                         Toast.makeText(context, "Profile Saved", Toast.LENGTH_SHORT).show()
                     }catch (e: Exception){}

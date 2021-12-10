@@ -65,9 +65,9 @@
             app:destination="@id/mapListViewFragment" />
         <argument
             android:name="coordinateKey"
-            android:defaultValue='""'
             app:argType="string"
-            app:nullable="true" />
+            app:nullable="true"
+            android:defaultValue='"null"' />
     </fragment>
     <fragment
         android:id="@+id/homeFragment"
@@ -145,7 +145,9 @@
         tools:layout="@layout/fragment_map_list_view" >
         <action
             android:id="@+id/action_mapListViewFragment_to_sendLocationFragment"
-            app:destination="@id/sendLocationFragment" />
+            app:destination="@id/sendLocationFragment"
+            app:popUpTo="@id/sendLocationFragment"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/profileFragment"

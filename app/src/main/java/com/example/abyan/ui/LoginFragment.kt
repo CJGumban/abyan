@@ -37,7 +37,6 @@ class LoginFragment : Fragment() {
     var auth: FirebaseAuth = Firebase.auth
     lateinit var sharedPreferences : SharedPreferences
     lateinit var editor: SharedPreferences.Editor
-    /*   val mFirebaseDatabase: FirebaseDatabase = FirebaseDatabase.getInstance()*/
     private val sharedViewModel: ApplicationViewModel by activityViewModels()
     private lateinit var binding: FragmentLoginBinding
     private var progressBar: ProgressBar? = null
@@ -68,7 +67,7 @@ class LoginFragment : Fragment() {
     }
     fun loadpref() {
         sharedPreferences = activity?.getPreferences(Context.MODE_PRIVATE)!!
-        editor = sharedPreferences?.edit()!!
+        editor = sharedPreferences.edit()!!
         /*val sharedPref = activity?.getPreferences(Context.MODE_PRIVATE) ?: return
         with(sharedPref.edit()) {
             putString("Username", "sharedprefun")
@@ -163,7 +162,7 @@ class LoginFragment : Fragment() {
 
             }
             Log.d(TAG,"Current user ${currentUser?.toMap().toString()}")
-            Log.d(TAG,"shareviewmodel.currentuserdata ${sharedViewModel.currentUserData.toMap().toString()}")
+            Log.d(TAG,"shareviewmodel.currentuserdata ${sharedViewModel.currentUserData.toMap()}")
 
 
             editor?.apply {
@@ -174,7 +173,7 @@ class LoginFragment : Fragment() {
                 this.putString("gender",sharedViewModel.currentUserData.gender)
                 this.putString("address",sharedViewModel.currentUserData.address)
                 this.putString("role",sharedViewModel.currentUserData.role)
-            }?.apply()
+            }.apply()
 
 
 
@@ -182,7 +181,7 @@ class LoginFragment : Fragment() {
 
             Log.d(TAG, "loginFragment loadUserInfo sharedViewModel.currentUserData ${sharedViewModel.currentUserData}")
 
-            Log.d(TAG, "loginFragment loadUserInfo apppreference.all ${sharedPreferences?.all}")
+            Log.d(TAG, "loginFragment loadUserInfo apppreference.all ${sharedPreferences.all}")
 
             Log.d(TAG, "user get: task success ${it.value}")
             updateUI()
@@ -303,7 +302,7 @@ class LoginFragment : Fragment() {
                 Log.d(TAG, "Login Fragment Sign In: Failed ${it.localizedMessage}")
                 Toast.makeText(
                     requireContext(),
-                    "${it?.localizedMessage}",
+                    "${it.localizedMessage}",
                     Toast.LENGTH_SHORT
                 ).show()
             }

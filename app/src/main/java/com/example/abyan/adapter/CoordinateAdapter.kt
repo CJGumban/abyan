@@ -14,25 +14,23 @@ import com.example.abyan.R
 import com.example.abyan.adapter.CoordinateAdapter.CoordinateViewHolder
 import com.example.abyan.model.Coordinate
 
-class CoordinateAdapter(private val context: Context,
-                        private val coordinate: List<Coordinate>): RecyclerView.Adapter<CoordinateViewHolder>() {
-
-
-    class CoordinateViewHolder(val view: View) : RecyclerView.ViewHolder(view)  {
+class CoordinateAdapter(
+    private val context: Context,
+    private val coordinate: List<Coordinate>
+) : RecyclerView.Adapter<CoordinateViewHolder>() {
+    class CoordinateViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
         val icon = view.findViewById<ImageView>(R.id.image_type)
         val fullname = view.findViewById<TextView>(R.id.textView_fullname)
         val type = view.findViewById<TextView>(R.id.textview_type)
         val age = view.findViewById<TextView>(R.id.textview_age)
         val timeDate = view.findViewById<TextView>(R.id.textview_timedate)
     }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CoordinateViewHolder {
         val layout = LayoutInflater
             .from(parent.context)
             .inflate(R.layout.list_coordinates, parent, false)
         return CoordinateViewHolder(layout)
     }
-
     override fun onBindViewHolder(holder: CoordinateViewHolder, position: Int) {
         val item = coordinate[position]
         holder.fullname.text = item.fullname.toString()
@@ -40,20 +38,20 @@ class CoordinateAdapter(private val context: Context,
         holder.age.text = "Age: ${item.age.toString()}"
         holder.timeDate.text = "${item.dateTime.toString()}"
         holder.icon.setImageResource(setMarker(item))
-    holder.view.setOnClickListener {
-        val action = MapListViewFragmentDirections.actionMapListViewFragmentToSendLocationFragment(item.key)
-        holder.view.findNavController().navigate(action)
-    }
+        holder.view.setOnClickListener {
+            val action =
+                MapListViewFragmentDirections.actionMapListViewFragmentToSendLocationFragment(item.key)
+            holder.view.findNavController().navigate(action)
+        }
     }
 
 
     override fun getItemCount(): Int {
         return coordinate.size
     }
-    private fun setMarker(coordinate: Coordinate) : Int {
+
+    private fun setMarker(coordinate: Coordinate): Int {
         var pin: Int = R.drawable.pin_null_red
-
-
         var type = coordinate.type
         var status = coordinate.status
         when (type) {
@@ -138,8 +136,6 @@ class CoordinateAdapter(private val context: Context,
         }
 
         return pin
-
-
     }
 
 }

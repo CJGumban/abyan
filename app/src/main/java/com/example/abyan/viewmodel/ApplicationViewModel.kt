@@ -54,26 +54,7 @@ class ApplicationViewModel : ViewModel() {
         const val TAG = "AppTesting"
     }
 
-   /* fun allowOffline(){
-        Firebase.database.setPersistenceEnabled(true)
 
-        val userRef = Firebase.database.getReference("user")
-        userRef.keepSynced(true)
-
-    }*/
-        fun getUser() {
-
-            database.child("user").get().addOnSuccessListener {
-                Log.i(TAG, "user. children ${it.children }}" +
-                        "\n datasnapshot.value ${it.value}" +
-                        "\n key ${it.key}" +
-                        "\n priority ${it.priority}" +
-                        "\n ref ${it.ref}")
-            }.addOnFailureListener {
-                Log.e("firebase", "Error getting data", it)
-            }
-
-        }
 
     // TODO: 16/11/2021 {wrong date}
     fun birthdateToString(){
@@ -86,15 +67,15 @@ class ApplicationViewModel : ViewModel() {
             birthdateToString  = dateFormat.format(date)
             Log.d("testingthis","${timestamp}")
 
-            Log.d(TAG,"birth ${birthdateToString.toString()}")}
+            Log.d(TAG,"birth $birthdateToString")}
     }
     fun editBirthdateToString(){
 
-            var timestamp: Long? = userToEdit?.birthDate?.toLong()
+            var timestamp: Long? = userToEdit.birthDate?.toLong()
             var date: Date = Date(timestamp?.toLong()!!)
             var dateFormat: SimpleDateFormat = SimpleDateFormat("YYYY/MM/dd")
             birthdateToString  = dateFormat.format(date)
-            Log.d(TAG,"birth ${birthdateToString.toString()}")}
+            Log.d(TAG,"birth $birthdateToString")}
 
 
 
@@ -161,12 +142,6 @@ class ApplicationViewModel : ViewModel() {
                 // Get Post object and use the values to update the UI
 
                 val post = dataSnapshot.getValue<Coordinate>()
-                // ...
-//                Log.w(TAG, "loadPost: Success ${post.toString()}")
-//                Log.w(TAG, "loadPost: email ${post?.email.toString()}")
-//                Log.w(TAG, "loadPost: lat ${post?.lat.toString()}")
-//                Log.w(TAG, "loadPost: lng ${post?.lng.toString()}")
-
 
             }
 
@@ -226,12 +201,6 @@ class ApplicationViewModel : ViewModel() {
                 "coordinates/$currentCoordinateKey" to coordinateValues,
                 "active-coordinates/$currentCoordinateKey" to coordinateValues,
 
-
-                //coordinates gets record of all of the coordinates send
-                //active-coordinates records coordinates for each email if email gets new coordinate the older coordinates get overwritten
-                //"active-coordinates/@email" to coordinateValues,
-
-
             )
 
             database.updateChildren(childUpdates)
@@ -274,11 +243,7 @@ class ApplicationViewModel : ViewModel() {
             val childUpdates = hashMapOf<String, Any>(
                 "coordinates/$key" to coordinateValues,
                 "active-coordinates/$key" to coordinateValues,
-
-
-                //coordinates gets record of all of the coordinates send
-                //active-coordinates records coordinates for each email if email gets new coordinate the older coordinates get overwritten
-                //"active-coordinates/@email" to coordinateValues,
+         //"active-coordinates/@email" to coordinateValues,
          )
             database.updateChildren(childUpdates)
                 .addOnSuccessListener { Log.w(TAG,"it worked")}
@@ -291,14 +256,14 @@ class ApplicationViewModel : ViewModel() {
     }
 
     fun activateRoute(marker: Marker){
-        markerOnRoute?.marker = marker
-        markerOnRoute?.coordinate = marker.tag as Coordinate
-        markerOnRoute?.isActive = true
+        markerOnRoute.marker = marker
+        markerOnRoute.coordinate = marker.tag as Coordinate
+        markerOnRoute.isActive = true
     }
     fun deactivateRoute() {
-        markerOnRoute?.marker = null
-        markerOnRoute?.coordinate = null
-        markerOnRoute?.isActive = false
+        markerOnRoute.marker = null
+        markerOnRoute.coordinate = null
+        markerOnRoute.isActive = false
     }
 
     fun changeStatus(coordinate: Coordinate, function:String){
@@ -362,66 +327,6 @@ class ApplicationViewModel : ViewModel() {
         currentUserData = User("","", "", "", "", "","")
         password = ""
     }
-
-
-
-    fun editPost(post: Post,body: String = "") {
-        post.body = body
-        val postValues = post.toMap()
-        val childUpdates = hashMapOf<String, Any>(
-            "post/${post.key}" to postValues,
-            "user-post/${post.key}" to postValues,
-        )
-        database.updateChildren(childUpdates)
-            .addOnSuccessListener { Log.w(TAG,"edit post successful")}
-            .addOnFailureListener {
-                Log.w(TAG, "edit post Failed")
-            }}
-
-
-
-     fun writePost(body: String = "") {
-
-
-        var tsLong = System.currentTimeMillis() / 1000
-        Log.d(TAG, " timestamp  $tsLong")
-        val cal = Calendar.getInstance(Locale.ENGLISH)
-        cal.timeInMillis = tsLong * 1000L
-        val date: String = DateFormat.format("MMM dd, yyyy", cal).toString()
-
-        val userId = auth.currentUser?.uid.toString()
-        val email = auth.currentUser?.email
-        // Create new post at /user-posts/$userid/$postid and at
-        // /posts/$postid simultaneously
-        val key = database.push().key
-        if (key == null) {
-            Log.w(TAG, "Couldn't get push key for posts")
-            return
-        }
-        Log.w(TAG, "$key")
-
-        val message = Post(key, body, date)
-
-
-        val messageValues = message.toMap()
-
-        val childUpdates = hashMapOf<String, Any>(
-            "/post/$key" to messageValues,
-            "user-post/$userId/$key" to messageValues
-
-            )
-
-
-        database.updateChildren(childUpdates)
-            .addOnSuccessListener { Log.w(TAG,"it worked")}
-            .addOnFailureListener {
-                Log.w(TAG, Exception())
-            }
-
-
-
-    }
-
     fun getPostListener() {
         // [START basic_listen]
         // Get a reference to Messages and attach a listener
@@ -436,10 +341,7 @@ class ApplicationViewModel : ViewModel() {
                     // data at this path or a subpath.
                     postList.clear()
                     dataSnapshot.children.forEach { child ->
-                        // Extract Post object from the DataSnapshot
                         val post: Post? = child.getValue<Post>()
-
-
                         postList.add(post!!)
                     }
                     postList.reverse()
@@ -458,7 +360,7 @@ class ApplicationViewModel : ViewModel() {
     }
 
     fun getAge(): String? {
-        var timestamp: Long? = userToEdit?.birthDate?.toLong()
+        var timestamp: Long? = userToEdit.birthDate?.toLong()
         var date: Date = Date(timestamp?.toLong()!!)
         var year: Int = SimpleDateFormat("YYYY").format(date).toInt()
         var month: Int = SimpleDateFormat("MM").format(date).toInt()
@@ -470,7 +372,7 @@ class ApplicationViewModel : ViewModel() {
     }
     var getAge:String = ""
     fun getAge2() {
-        var timestamp: Long? = currentUserData?.birthDate?.toLong()
+        var timestamp: Long? = currentUserData.birthDate?.toLong()
         var date: Date = Date(timestamp?.toLong()!!)
         var year: Int = SimpleDateFormat("YYYY").format(date).toInt()
         var month: Int = SimpleDateFormat("MM").format(date).toInt()

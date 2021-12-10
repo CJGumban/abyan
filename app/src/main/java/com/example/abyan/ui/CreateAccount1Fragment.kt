@@ -124,7 +124,7 @@ class CreateAccount1Fragment : Fragment() {
             )
         database.updateChildren(childUpdates)
             .addOnSuccessListener {
-                editor?.apply() {
+                editor?.apply {
                     this.putString("email", user.email)
                     this.putString("firstname",user.firstName)
                     this.putString("lastname",user.lastName)
@@ -132,7 +132,7 @@ class CreateAccount1Fragment : Fragment() {
                     this.putString("gender",user.gender)
                     this.putString("address",user.address)
                     this.putString("role",user.role)
-                }?.apply()
+                }.apply()
                 Toast.makeText(context, "Account Created", Toast.LENGTH_SHORT).show()
                 hideProgressBar()
                 updateUI()
@@ -199,7 +199,7 @@ class CreateAccount1Fragment : Fragment() {
     }
     fun loadpref() {
         sharedPreferences = activity?.getPreferences(Context.MODE_PRIVATE)!!
-        editor = sharedPreferences?.edit()!!
+        editor = sharedPreferences.edit()!!
     }
 
 }

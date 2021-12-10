@@ -52,8 +52,8 @@ import java.util.*
 
 
 class HomeFragment : Fragment() {
-     lateinit var sharedPreferences: SharedPreferences
-     lateinit var editor: SharedPreferences.Editor
+    lateinit var sharedPreferences: SharedPreferences
+    lateinit var editor: SharedPreferences.Editor
     private val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
@@ -99,6 +99,7 @@ class HomeFragment : Fragment() {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         return binding.root
     }
+
     companion object {
         private const val TAG = "AppTesting"
     }
@@ -187,7 +188,7 @@ class HomeFragment : Fragment() {
                     }
 
                     override fun onFinish() {
-                        if (!net()){
+                        if (!net()) {
                             emergencyCall()
                         } else {
                             sendDeviceDialog()
@@ -207,39 +208,24 @@ class HomeFragment : Fragment() {
             false
         })
 
-     /*   binding.signoutButton.setOnClickListener {
-            sharedViewModel.auth.signOut()
-            sharedViewModel.auth.addAuthStateListener {
-                try {
-                    logout()
-                    Log.d(TAG, "${sharedViewModel.auth.currentUser}")
-                    Log.d(TAG, "${sharedViewModel.auth.currentUser}")
-                    if (sharedViewModel.auth.currentUser == null) {
-                        setCurrentFragment("logout")
-
-
-                    }
-                } catch (e: Exception) {
-                    Log.d(TAG, "Error ${e.message}")
-                }
-            }
-        }*/
         checkRoles()
     }
+
     fun net(): Boolean {
         val cm = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
         val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
         return isConnected
     }
+
     private fun emergencyCall() {
 
 
         var emergencyCallDialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle("Location Unknown")
             .setMessage("Check your internet connection and GPS or Call 911 Instead")
-            .setNeutralButton("Retry"){dialog, which->}
-            .setPositiveButton("Call"){dialog,which ->
+            .setNeutralButton("Retry") { dialog, which -> }
+            .setPositiveButton("Call") { dialog, which ->
                 val number: String = "911"
                 val intent = Intent(Intent.ACTION_DIAL).apply {
                     data = Uri.parse("tel:$number")
@@ -250,6 +236,7 @@ class HomeFragment : Fragment() {
 
 
     }
+
     //create location request
     fun createLocationRequest() {
         locationRequest = LocationRequest.create().apply {
@@ -298,33 +285,34 @@ class HomeFragment : Fragment() {
         try {
 
 
-        when (itemId) {
-            "news" -> {
-                val action =
-                    HomeFragmentDirections.actionHomeFragmentToNewsUpdateFragment()
-                view?.findNavController()?.navigate(action)
-            }
-            "map" -> {
-                val action =
-                    HomeFragmentDirections.actionHomeFragmentToSendLocationFragment()
-                view?.findNavController()?.navigate(action)
-            }
+            when (itemId) {
+                "news" -> {
+                    val action =
+                        HomeFragmentDirections.actionHomeFragmentToNewsUpdateFragment()
+                    view?.findNavController()?.navigate(action)
+                }
+                "map" -> {
+                    val action =
+                        HomeFragmentDirections.actionHomeFragmentToSendLocationFragment()
+                    view?.findNavController()?.navigate(action)
+                }
 
-            "logout" -> {
-                val action =
-                    HomeFragmentDirections.actionHomeFragmentToLoginFragment()
-                view?.findNavController()?.navigate(action)
+                "logout" -> {
+                    val action =
+                        HomeFragmentDirections.actionHomeFragmentToLoginFragment()
+                    view?.findNavController()?.navigate(action)
+
+                }
+                "profile" -> {
+                    val action =
+                        HomeFragmentDirections.actionHomeFragmentToProfileFragment()
+                    view?.findNavController()?.navigate(action)
+                }
 
             }
-            "profile" -> {
-                val action =
-                    HomeFragmentDirections.actionHomeFragmentToProfileFragment()
-                view?.findNavController()?.navigate(action)
-            }
-
-        }}catch (e: Exception){}
+        } catch (e: Exception) {
+        }
     }
-
 
 
     private fun isPermissionGranted(): Boolean {
@@ -345,13 +333,6 @@ class HomeFragment : Fragment() {
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
                 return
             }
 
@@ -379,8 +360,6 @@ class HomeFragment : Fragment() {
 
         }
     }
-
-
     private fun sendLocation() {
         Log.d(TAG, "Send location")
         Log.d(TAG, "locationpermissiongranted $locationPermissionGranted")
@@ -409,39 +388,36 @@ class HomeFragment : Fragment() {
                             .setMessage("Keep calm. Help is on its way")
                             .setPositiveButton("Got it!") { dialog, which ->
                             }.show()
-
                         sharedViewModel.latitude = mCurrentLocation!!.latitude
                         sharedViewModel.longitude = mCurrentLocation!!.longitude
-                        /*sharedViewModel.sendLocationNow()*/
                         sendLocationNow()
 
                     }
                     .show()
                 typepicker.setCanceledOnTouchOutside(false)
-
-
             }
         } else {
             Log.d(TAG, "Current location is null. Using defaults.")
         }
     }
+
     fun sendLocationNow() {
-        var userExist:Boolean = false
+        var userExist: Boolean = false
         var currentCoordinateKey: String? = null
         sharedViewModel.coordinatelist.forEach { coordinate ->
-            if (sharedViewModel.auth.currentUser?.email == coordinate.email ){
+            if (sharedViewModel.auth.currentUser?.email == coordinate.email) {
                 userExist = true
                 currentCoordinateKey = coordinate.key
                 Log.d(ApplicationViewModel.TAG, "sendLocationMethod: Current user exist")
             }
         }
-        if (userExist){
+        if (userExist) {
             var tsLong = System.currentTimeMillis() / 1000
             Log.d(ApplicationViewModel.TAG, " timestamp  $tsLong")
             val cal = Calendar.getInstance(Locale.ENGLISH)
             cal.timeInMillis = tsLong * 1000L
             val date: String = DateFormat.format("MM-dd hh:mm", cal).toString()
-            Log.d(ApplicationViewModel.TAG,"time stamp to date: $date")
+            Log.d(ApplicationViewModel.TAG, "time stamp to date: $date")
             val email = sharedViewModel.auth.currentUser?.email
             // Create new post at /user-posts/$userid/$postid and at
             // /posts/$postid simultaneously
@@ -468,44 +444,31 @@ class HomeFragment : Fragment() {
             val childUpdates = hashMapOf<String, Any>(
                 "coordinates/$currentCoordinateKey" to coordinateValues,
                 "active-coordinates/$currentCoordinateKey" to coordinateValues,
-
-
-                //coordinates gets record of all of the coordinates send
-                //active-coordinates records coordinates for each email if email gets new coordinate the older coordinates get overwritten
-                //"active-coordinates/@email" to coordinateValues,
-
-
             )
 
             database.updateChildren(childUpdates)
-                .addOnSuccessListener { Log.w(ApplicationViewModel.TAG,"it worked")}
+                .addOnSuccessListener { Log.w(ApplicationViewModel.TAG, "it worked") }
                 .addOnFailureListener {
                     Log.w(ApplicationViewModel.TAG, "failed")
                     emergencyCall()
                 }
-                .addOnCompleteListener { task->
+                .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         Log.d(TAG, "finish task results ${task.result}")
-                        Log.d(TAG, "coordinatevalues ${coordinateValues.toString()}")
-                    }
-                    else {
+                        Log.d(TAG, "coordinatevalues $coordinateValues")
+                    } else {
                         emergencyCall()
                         Log.d(TAG, "task failed ${task.exception?.localizedMessage.toString()}")
                     }
                 }
-
-
-        } else if(!userExist){
+        } else if (!userExist) {
             var tsLong = System.currentTimeMillis() / 1000
             Log.d(ApplicationViewModel.TAG, " timestamp  $tsLong")
             val cal = Calendar.getInstance(Locale.ENGLISH)
             cal.timeInMillis = tsLong * 1000L
             val date: String = DateFormat.format("MM-dd hh:mm", cal).toString()
-            Log.d(ApplicationViewModel.TAG,"time stamp to date: $date")
-
+            Log.d(ApplicationViewModel.TAG, "time stamp to date: $date")
             val email = sharedViewModel.auth.currentUser?.email
-            // Create new post at /user-posts/$userid/$postid and at
-            // /posts/$postid simultaneously
             val key = database.push().key
             if (key == null) {
                 Log.w(ApplicationViewModel.TAG, "Couldn't get push key for posts")
@@ -532,32 +495,24 @@ class HomeFragment : Fragment() {
             val childUpdates = hashMapOf<String, Any>(
                 "coordinates/$key" to coordinateValues,
                 "active-coordinates/$key" to coordinateValues,
-
-
-                //coordinates gets record of all of the coordinates send
-                //active-coordinates records coordinates for each email if email gets new coordinate the older coordinates get overwritten
-                //"active-coordinates/@email" to coordinateValues,
             )
             database.updateChildren(childUpdates)
-                .addOnSuccessListener { Log.w(ApplicationViewModel.TAG,"it worked")}
+                .addOnSuccessListener { Log.w(ApplicationViewModel.TAG, "it worked") }
                 .addOnFailureListener {
                     Log.w(ApplicationViewModel.TAG, "failed")
                     emergencyCall()
                 }
-                .addOnCompleteListener { task->
+                .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         Log.d(TAG, "finish task results ${task.result}")
-                        Log.d(TAG, "coordinatevalues ${coordinateValues.toString()}")
+                        Log.d(TAG, "coordinatevalues $coordinateValues")
 
-                    }
-                    else {
+                    } else {
                         emergencyCall()
                         Log.d(TAG, "task failed ${task.exception?.localizedMessage.toString()}")
                     }
                 }
         }
-
-
     }
 
     private fun sendDeviceDialog() {
@@ -620,18 +575,18 @@ class HomeFragment : Fragment() {
             }
         })
     }
-    fun checkRoles(){
 
-        Log.d(TAG,"checkRoles ${sharedViewModel.currentUserData.role.toString()}")
-        if (!sharedViewModel.currentUserData.role.equals("user")){
+    fun checkRoles() {
+
+        Log.d(TAG, "checkRoles ${sharedViewModel.currentUserData.role.toString()}")
+        if (!sharedViewModel.currentUserData.role.equals("user")) {
             binding.bottomNavigation.menu[2].isVisible
-            if (sharedViewModel.currentUserData.role.equals("admin")){
+            if (sharedViewModel.currentUserData.role.equals("admin")) {
                 binding.sendLocationButton.isEnabled = false
                 binding.sendLocationText.text = "ADMIN"
                 binding.info.isVisible = false
             }
-        }
-        else if(sharedViewModel.currentUserData.role.equals("user")){
+        } else if (sharedViewModel.currentUserData.role.equals("user")) {
             binding.bottomNavigation.menu[2].isVisible = false
         }
     }
@@ -639,28 +594,21 @@ class HomeFragment : Fragment() {
     fun loadpref() {
         sharedPreferences = activity?.getPreferences(Context.MODE_PRIVATE)!!
         editor = sharedPreferences.edit()!!
-        Log.d(TAG,"sharedpref ${sharedPreferences.all.toString()}")
+        Log.d(TAG, "sharedpref ${sharedPreferences.all}")
         sharedViewModel.currentUserData = User(
-            sharedPreferences.getString("email",""),
-            sharedPreferences.getString("firstname",""),
-            sharedPreferences.getString("lastname",""),
-            sharedPreferences.getString("birthDate",""),
-            sharedPreferences.getString("gender",""),
-            sharedPreferences.getString("address",""),
-            sharedPreferences.getString("role","null"),
+            sharedPreferences.getString("email", ""),
+            sharedPreferences.getString("firstname", ""),
+            sharedPreferences.getString("lastname", ""),
+            sharedPreferences.getString("birthDate", ""),
+            sharedPreferences.getString("gender", ""),
+            sharedPreferences.getString("address", ""),
+            sharedPreferences.getString("role", "null"),
         )
-        Log.d(TAG,"sharedvm ${sharedViewModel.currentUserData.toString()}")
+        Log.d(TAG, "sharedvm ${sharedViewModel.currentUserData}")
 
 
     }
 
-
-
-
-    private fun logout() {
-     sharedViewModel.eraseUserData()
-        editor.clear().commit()
-    }
 
 }
 
