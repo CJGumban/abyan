@@ -37,7 +37,6 @@ class LoginFragment : Fragment() {
     var auth: FirebaseAuth = Firebase.auth
     lateinit var sharedPreferences : SharedPreferences
     lateinit var editor: SharedPreferences.Editor
-    /*   val mFirebaseDatabase: FirebaseDatabase = FirebaseDatabase.getInstance()*/
     private val sharedViewModel: ApplicationViewModel by activityViewModels()
     private lateinit var binding: FragmentLoginBinding
     private var progressBar: ProgressBar? = null
