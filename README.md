@@ -22,5 +22,24 @@ Features:
 - Implemented a user-friendly map interface using Google Maps SDK that provides the responders the incident’s location details and utilized Directions API to show route from responder to the incident’s location for a faster navigation.   
 
 ## Demo
-<img src="https://github.com/CJGumban/abyan/assets/68932940/adf70321-e9ba-46fd-af45-5601bbb86f37" width="" height="500">
+<p align="center">
+  <img alt="Light" src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="20%">
+&nbsp; &nbsp; &nbsp; &nbsp;
+  <img alt="Dark" src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="20%">
+  &nbsp; &nbsp; &nbsp; &nbsp;
+  <img alt="Dark" src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="20%">
+</p>
+<img src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="" height="500">
+<img src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="" height="500">
+<img src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="" height="500">
+<img src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="" height="500">
+<img src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="" height="500">
+<img src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="" height="500">
+<img src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="" height="500">
+<img src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="" height="500">
+<img src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="" height="500">
+<img src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="" height="500">
+<img src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="" height="500">
+<img src="https://github.com/CJGumban/abyan/blob/V5/app/sample/1%20(1).png" width="" height="500">
+
 
