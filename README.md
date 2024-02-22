@@ -19,7 +19,8 @@ Features:
 - SOS android application that send user’s location and type of assistance needed in case of an emergency. Has news interface for current local announcement.
 - Designed and implemented the features, frontend component and backend of the whole app.
 - Integrated the backend using Firebase Database to allow access and storage for user’s account and location details, and news updates.
-- Implemented a user-friendly map interface using Google Maps SDK that provides the responders the incident’s location details and utilized Directions API to show route from responder to the incident’s location for a faster navigation.   
+- Implemented a user-friendly map interface using Google Maps SDK that provides the responders the incident’s location details and utilized Directions API to show route from responder to the incident’s location for a faster navigation.
+- Created a list of incident group by their status whether it still need help, ongoing or done. The Item from the list can be click to show the location in the map.
 
 ## Demo
 ### User Interface
